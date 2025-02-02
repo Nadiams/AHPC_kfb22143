@@ -19,6 +19,8 @@ N = 100000000
 DELTA = mpf(1.0) / N  # used mpf to calculate a precise value of pi
 # integral
 I = mpf(0.0)  # maintained this method throughout the calculation.
+mp.dps = 2  # I have initially set the d.p.=2 to quickly test this 
+#version works, I will gradually increase it as I alter my code to keep it in quick parallel.
 
 def integrand(x):
     return mpf(4.0) / (mpf(1.0) + x * x)
