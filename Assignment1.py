@@ -39,6 +39,7 @@ def integrand(x):
 if comm.Get_rank() == 0:
     # Leader: choose points to sample function, send to workers and
     # collect their contributions. Also calculate a sub-set of points.
+    print("Leader begins integral")  #To demonstrate parallel working.
     for i in range(0, N):
         # decide which rank evaluates this point
         j = i % nproc
@@ -60,6 +61,8 @@ if comm.Get_rank() == 0:
 
 
 else:
+    print(f"Worker {comm.Get_rank()} processes data here") #To demonstrate
+    #parallel working.
     # Worker: waiting for something to happen, then stop if sent message
     # outside the integral limits
     while True:
