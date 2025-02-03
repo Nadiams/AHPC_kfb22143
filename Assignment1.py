@@ -50,7 +50,7 @@ if comm.Get_rank() == 0:  # Leader: choose points to sample function, send to wo
         comm.send(-1.0, dest=i)
 
     # Only rank 0 should print the result
-    print("Integral %.10f" % I)
+    print(f"The value of pi to 15 s.f. = {I}")
 
 else:
     # Worker: waiting for something to happen, then stop if sent message
