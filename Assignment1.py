@@ -56,7 +56,7 @@ if comm.Get_rank() == 0: # Leader: choose points to sample function, send to wor
     # Shut down the workers
     for i in range(1, nproc):
         comm.send(-1.0, dest=i)
-    print(f"The value of pi to 15 s.f. = {I:.14f}")
+    print(f"The value of pi to 15 s.f. = {float(I):.14f}")
 
 else:
     # Worker: waiting for something to happen, then stop if sent message
