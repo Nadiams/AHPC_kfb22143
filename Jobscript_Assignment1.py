@@ -20,7 +20,7 @@
 #SBATCH --ntasks=16
 #
 # Specify (hard) runtime (HH:MM:SS)
-#SBATCH --time=00:40:00
+#SBATCH --time=01:40:00
 #
 # Job name
 #SBATCH --job-name=pythontest
@@ -45,8 +45,8 @@ module load openmpi/gcc-8.5.0/4.1.1
 #------------------------------------------------------
 
 # Modify the line below to run your program
-mpirun -np $SLURM_NPROCS python3 finaltry2.py
-pylint --extension-pkg-whitelist=mpi4py.MPI finaltry2.py
+mpirun -np $SLURM_NPROCS python3 finaltry3.py
+pylint --extension-pkg-whitelist=mpi4py.MPI finaltry3.py
 #======================================================
 # Epilogue script to record job endtime and runtime
 # Do not change the line below

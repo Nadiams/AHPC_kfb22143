@@ -36,7 +36,7 @@ def integrand(x):
         mpf: the value of pi worked out by the integrand function.
     """
     return mpf(4.0) / (mpf(1.0) + x * x)
-	# maintained this method throughout the calculation.
+    # maintained this method throughout the calculation.
 if comm.Get_rank() == 0: # Leader: choose points to sample function, send to workers and
     # collect their contributions. Also calculate a sub-set of points.
     for i in range(0, N):
@@ -51,19 +51,22 @@ if comm.Get_rank() == 0: # Leader: choose points to sample function, send to wor
             # communicate to a worker
             comm.send(recv_x, dest=j)
             y = comm.recv(source=j)
-        I += y
+        I += comm.reduce(y, op=MPI.SUM, root=0)
 
     # Shut down the workers
     for i in range(1, nproc):
-        comm.send(-1.0, dest=i)
+        workersection = integrand(recv_x) * DELTA # Calculate partial sum in each worker
+        comm.send(workersection, dest=0)
     print(f"The value of pi to 15 s.f. = {float(I):.14f}")
 
 else:
     # Worker: waiting for something to happen, then stop if sent message
     # outside the integral limits
+    workersection = mpf(0.0)
     while True:
         recv_x = comm.recv(source=0)
         if recv_x < 0.0:
             # stop the worker
             break
-        comm.send(integrand(recv_x) * DELTA, dest=0)
+        workersection += integrand(recv_x) * DELTA
+    comm.send(integrand(recv_x) * DELTA, dest=0)
