@@ -46,7 +46,7 @@ module load openmpi/gcc-8.5.0/4.1.1
 
 # Modify the line below to run your program
 mpirun -np $SLURM_NPROCS python3 finaltry2.py
-pylint --extension-pkg-whitelist=mpi4py.MPI my_prog.py
+pylint --extension-pkg-whitelist=mpi4py.MPI finaltry2.py
 #======================================================
 # Epilogue script to record job endtime and runtime
 # Do not change the line below
