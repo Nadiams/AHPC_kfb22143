@@ -21,7 +21,7 @@ DELTA = mpf(1.0) / N
 # used mpf to calculate a precise value of pi
 # integral
 I = mpf(0.0)
-mp.dps = 14
+mp.dps = 50
 # I have initially set the d.p.=2 to quickly test this version works,
 #I will gradually increase it as I alter my code to keep it in quick parallel.
 #Have now moved to 14 d.p.
@@ -51,12 +51,11 @@ if comm.Get_rank() == 0: # Leader: choose points to sample function, send to wor
             # communicate to a worker
             comm.send(recv_x, dest=j)
             y = comm.recv(source=j)
-        I += comm.reduce(y, op=MPI.SUM, root=0)
+        I += y
 
     # Shut down the workers
     for i in range(1, nproc):
-        workersection = integrand(recv_x) * DELTA
-        comm.send(workersection, dest=0)
+        comm.send(-1.0, dest=i)
     print(f"The value of pi to 15 s.f. = {float(I):.14f}")
 
 else:
