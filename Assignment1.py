@@ -55,7 +55,7 @@ if comm.Get_rank() == 0: # Leader: choose points to sample function, send to wor
 
     # Shut down the workers
     for i in range(1, nproc):
-        workersection = integrand(recv_x) * DELTA # Calculate partial sum in each worker
+        workersection = integrand(recv_x) * DELTA
         comm.send(workersection, dest=0)
     print(f"The value of pi to 15 s.f. = {float(I):.14f}")
 
