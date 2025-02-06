@@ -1,9 +1,9 @@
 #!/bin/python3
 """
 	Sets environment for program to work in, including the conda environment: condampipython.
-	Args: 
+	Args:
 		python3
-	Returns: 
+	Returns:
 		mpmath, mpi4py, math.fsum
 """
 from mpi4py import MPI
@@ -17,27 +17,27 @@ nproc = comm.Get_size()
 nworkers = nproc - 1
 # samples
 N = 100000000
-DELTA = mpf(1.0) / N  # used mpf to calculate a precise value of pi
+DELTA = mpf(1.0) / N
+# used mpf to calculate a precise value of pi
 # integral
-I = mpf(0.0)  # maintained this method throughout the calculation.
-mp.dps = 14 # I have initially set the d.p.=2 to quickly test this 
-#version works, I will gradually increase it as I alter my code to keep 
-#it in quick parallel.
+I = mpf(0.0)
+mp.dps = 14
+# I have initially set the d.p.=2 to quickly test this version works,
+#I will gradually increase it as I alter my code to keep it in quick parallel.
 #Have now moved to 14 d.p.
 
 def integrand(x):
     """
     Function to solve pi.
-
-    Args: 
+    Args:
         x (mpf): x is evaluated by the workers and fed back through a 
         loop in parallel with each other.
-        
     Returns:
         mpf: the value of pi worked out by the integrand function.
     """
     return mpf(4.0) / (mpf(1.0) + x * x)
-if comm.Get_rank() == 0:    # Leader: choose points to sample function, send to workers and
+	# maintained this method throughout the calculation.
+if comm.Get_rank() == 0: # Leader: choose points to sample function, send to workers and
     # collect their contributions. Also calculate a sub-set of points.
     for i in range(0, N):
         # decide which rank evaluates this point
