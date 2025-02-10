@@ -14,38 +14,38 @@ class Vector:
         Vector class for Cartesian vectors in 3D space.
     """
     def __init__(self, i, j, k):
-        self.i = i
-        self.j = j
-        self.k = k
+        self._i = i
+        self._j = j
+        self._k = k
 
     def __str__(self):
-        return f"({self.i:.2f}, {self.j:.2f}, {self.k:.2f})"
+        return f"({self._i:.2f}, {self._j:.2f}, {self._k:.2f})"
 
     def __add__(self, other):
-        return Vector(self.i + other.i, self.j + other.j, self.k + other.k)
+        return Vector(self._i + other._i, self._j + other._j, self._k + other._k)
 
     def __sub__(self, other):
-        return Vector(self.i - other.i, self.j - other.j, self.k - other.k)
+        return Vector(self._i - other._i, self._j - other._j, self._k - other._k)
 
     def norm(self):
         """Calculates the magnitude of the vector"""
-        return math.sqrt(self.i**2 + self.j**2 + self.k**2)
+        return math.sqrt(self._i**2 + self._j**2 + self._k**2)
     
     def dot(self, other):
-        return self.i * other.i + self.j * other.j + self.k * other.k
+        return self._i * other._i + self._j * other._j + self._k * other._k
 
     def cross(self, other):
         return Vector(
-            self.j * other.k - self.k * other.j,
-            self.k * other.i - self.i * other.k,
-            self.i * other.j - self.j * other.i
+            self._j * other._k - self._k * other._j,
+            self._k * other._i - self._i * other._k,
+            self._i * other._j - self._j * other._i
         )
 
     def __array__(self, dtype=None):
         if dtype:
-            return np.array([self.i, self.j, self.k], dtype=dtype)
+            return np.array([self._i, self._j, self._k], dtype=dtype)
         else:
-            return np.array([self.i, self.j, self.k])
+            return np.array([self._i, self._j, self._k])
     
 class SphericalPolarVector(Vector):
     """ 
@@ -60,13 +60,12 @@ class SphericalPolarVector(Vector):
         
         super().__init__(i, j, k)
 
-        self.r = r
-        self.theta = theta
-        self.phi = phi
+        self._r = r
+        self._theta = theta
+        self._phi = phi
 
     def __str__(self):
-        return f"(r={self.r:.2f}, θ={math.degrees(self.theta):.2f}°, φ={math.degrees(self.phi):.2f}°)"
-
+        return f"(r={self._r:.2f}, θ={math.degrees(self._theta):.2f}°, φ={math.degrees(self._phi):.2f}°)"
 
 v1 = Vector(1, 0, 0) # i
 v2 = Vector(0, 1, 0) # j
