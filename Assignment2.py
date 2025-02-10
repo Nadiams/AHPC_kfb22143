@@ -31,7 +31,7 @@ class Vector:
         """Calculates the magnitude of the vector"""
         return math.sqrt(self.i**2 + self.j**2 + self.k**2)
     
-class ExtendedVector(Vector):
+class SphericalPolarVector(Vector):
     """ 
         Using inheritance to take previous methods used in parent class to 
         pass to child class.
