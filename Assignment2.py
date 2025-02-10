@@ -28,20 +28,35 @@ class Vector:
         return Vector(self.i - other.i, self.j - other.j, self.k - other.k)
 
     def norm(self):
-        """Computes magnitude of the vector"""
+        """Calculates the magnitude of the vector"""
         return math.sqrt(self.i**2 + self.j**2 + self.k**2)
+    
+    def dot(self, other):
+        """Calculates the dot (scalar) product of two vectors"""
+        return self.i * other.i + self.j * other.j + self.k * other.k
 
+    def cross(self, other):
+        """Calculates the cross product of two vectors"""
+        return Vector(
+            self.j * other.k - self.k * other.j,
+            self.k * other.i - self.i * other.k,
+            self.i * other.j - self.j * other.i
+        )
+    
     def __array__(self, dtype=None):
         if dtype:
             return np.array([self.i, self.j, self.k], dtype=dtype)
         else:
             return np.array([self.i, self.j, self.k])
 
-v1 = Vector(1, 0, 0)
-v2 = Vector(0, 1, 0)
+v1 = Vector(1, 0, 0) # i
+v2 = Vector(0, 1, 0) # j
+v3 = Vector(1, 0, 0) # k
 
 print("Vector v1:", v1)
 print("Vector v2:", v2)
 print("Magnitude of v1:", v1.norm())
 print("v1 + v2:", v1 + v2)
 print("v1 - v2:", v1 - v2)
+print("Dot Product v1 · v2:", v1.dot(v2))
+print("Cross Product v1 × v2:", v1.cross(v2))
