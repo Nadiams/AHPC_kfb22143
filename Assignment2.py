@@ -67,6 +67,14 @@ class SphericalPolarVector(Vector):
     def __str__(self):
         return f"(r={self._r:.2f}, θ={math.degrees(self._theta):.2f}°, φ={math.degrees(self._phi):.2f}°)"
 
+    def cartesian(self, vector):
+        """Converts Cartesian coordinates vectors to Spherical-Polar coordinates."""
+        r = math.sqrt(vector._i**2 + vector._j**2 + vector._k**2)
+        theta = math.acos(vector._k / r) if r != 0 else 0
+        phi = math.atan2(vector._j, vector._i)
+
+        return SphericalPolarVector(r, theta, phi) 
+
 v1 = Vector(1, 0, 0) # i
 v2 = Vector(0, 1, 0) # j
 v3 = Vector(1, 0, 0) # k
