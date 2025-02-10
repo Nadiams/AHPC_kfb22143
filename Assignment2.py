@@ -30,11 +30,23 @@ class Vector:
     def norm(self):
         """computes magnitude of vector"""
         return math.sqrt(self.i**2+self.j**2+self.k**2)
-    
-i = Vector(1.,0.,0.)
-j = Vector(0.,1.,0.)
-k = Vector(0.,0.,1.)
 
-print(i)
-print(j)
-print(k)
+
+    def __array__(self, dtype=None):
+        if dtype:
+            return np.array([self.i, self.j, self.k], dtype=dtype)
+        else:
+            return np.array([self.i, self.j, self.k])
+        
+#i = Vector(1.,0.,0.)
+#k = Vector(0.,0.,1.)
+
+#j = Vector(0.,1.,0.)
+
+#print(i)
+#print(j)
+#print(k)
+
+ijk = Vector()
+
+print()
