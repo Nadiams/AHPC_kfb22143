@@ -31,6 +31,15 @@ class Vector:
         """Calculates the magnitude of the vector"""
         return math.sqrt(self.i**2 + self.j**2 + self.k**2)
     
+class ExtendedVector(Vector):
+    """ 
+        Using inheritance to take previous methods used in parent class to 
+        pass to child class.
+    """
+    def __init__(self, i, j, k):
+        super().__init__(i, j, k)
+
+    
     def dot(self, other):
         """Calculates the dot (scalar) product of two vectors"""
         return self.i * other.i + self.j * other.j + self.k * other.k
@@ -49,9 +58,9 @@ class Vector:
         else:
             return np.array([self.i, self.j, self.k])
 
-v1 = Vector(1, 0, 0) # i
-v2 = Vector(0, 1, 0) # j
-v3 = Vector(1, 0, 0) # k
+v1 = ExtendedVector(1, 0, 0) # i
+v2 = ExtendedVector(0, 1, 0) # j
+v3 = ExtendedVector(1, 0, 0) # k
 
 print("Vector v1:", v1)
 print("Vector v2:", v2)
