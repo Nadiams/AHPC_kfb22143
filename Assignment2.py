@@ -19,7 +19,7 @@ class Vector:
         self.k = k
 
     def __str__(self):
-        return f"({self.i}, {self.j}, {self.k})"
+        return f"({self._i:.2f}, {self._j:.2f}, {self._k:.2f})"
 
     def __add__(self, other):
         return Vector(self.i + other.i, self.j + other.j, self.k + other.k)
