@@ -81,6 +81,19 @@ class Vector:
         phi = math.atan2(self._j, self._i)
 
         return SphericalPolarVector(r, theta, phi)
+    
+    def trianglearea(self, v2, v3):
+        """
+            Area of a triangle
+            Args:
+                v1, v2, v3: Vector objects representing the vertices.
+            Returns:
+                Area.
+        """
+        side1 = v2 - self
+        side2 = v3 - self
+        cross_product = side1.cross(side2)
+        return 0.5 * cross_product.norm()
 
 class SphericalPolarVector(Vector):
     """
@@ -115,58 +128,66 @@ class SphericalPolarVector(Vector):
             f"φ={math.degrees(self._phi):.2f}°)"
     )
 
-    def __trianglearea__(self, AdditionAdditionv1, v2, v3):
-        """
-            Area of a triangle
-            Args:
-                v1, v2, v3: Vector objects representing the vertices.
-            Returns:
-                Area.
-        """
-        side1 = v2 - v1
-        side2 = v3 - v1
-        cross_product = side1.cross(side2)
-        return 0.5 * cross_product.norm()
+#v1 = Vector(1, 0, 0)  # i=1, j=0, k=0
+#v2 = Vector(0, 1, 0)  # i=0, j=1, k=0
+#v3 = Vector(0, 0, 1)  # i=0, j=0, k=1
 
-triangles = [
-    (Vector(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0)),   # Triangle 1
-    (Vector(-1, -1, -1), Vector(0, -1, -1), Vector(-1, 0, -1)),   # Triangle 2
-    (Vector(1, 0, 0), Vector(0, 0, 1), Vector(0, 0, 0)),   # Triangle 3
-    (Vector(0, 0, 0), Vector(1, -1, 0), Vector(0, 0, 1))   # Triangle 4
-]
+# 4 Triangles with Cartesian Points
 
-v1 = Vector(1, 0, 0)  # i=1, j=0, k=0
-v2 = Vector(0, 1, 0)  # i=0, j=1, k=0
-v3 = Vector(0, 0, 1)  # i=0, j=0, k=1
-sphericalpolar_vector1 = v1.cartesian_to_spherical()
-sphericalpolar_vector2 = v2.cartesian_to_spherical()
-sphericalpolar_vector3 = v3.cartesian_to_spherical()
+vv1 = Vector(0, 0, 0)  # i=1, j=0, k=0
+vv2 = Vector(0, 1, 0)  # i=0, j=1, k=0
+vv3 = Vector(0, 0, 1)  # i=0, j=0, k=1
 
-cartesian_sub = v1 - v2
+u1 = Vector(-1,-1,-1)
+u2 = Vector(0,-1,-1)
+u3 = Vector(-1,0,-1)
+
+p1 = Vector(1, 0, 0)
+p2 = Vector(0, 0, 1)
+p3 = Vector(0, 0, 0)
+
+q1 = Vector(0,0,0)
+q2 = Vector(1,-1,0)
+q3 = Vector(0,0,1)
+
+area1 = vv1.trianglearea(vv2, vv3)
+print("Cartesian Triangle 1 Area: ", area1)
+area2 = u1.trianglearea(u2, u3)
+print("Cartesian Triangle 2 Area: ", area2)
+area3 = p1.trianglearea(p2, p3)
+print("Cartesian Triangle 3 Area: ", area3)
+area4 = q1.trianglearea(q2, q3)
+print("Cartesian Triangle 4 Area: ", area4)
+
+sphericalpolar_vector1 = vv1.cartesian_to_spherical()
+sphericalpolar_vector2 = vv2.cartesian_to_spherical()
+sphericalpolar_vector3 = vv3.cartesian_to_spherical()
+
+cartesian_sub = vv1 - vv2
 sphericalpolar_sub = cartesian_sub.cartesian_to_spherical()
 
-cartesian_add = v1 + v2
+cartesian_add = vv1 + vv2
 sphericalpolar_add = cartesian_add.cartesian_to_spherical()
 
-cartesian_mag = v1.norm()
+cartesian_mag = vv1.norm()
 # Spherical-Polar Magnitude is the r-component.
 
-cartesian_cross = v1.cross(v2)
+cartesian_cross = vv1.cross(vv2)
 sphericalpolar_cross = cartesian_cross.cartesian_to_spherical()
 
-cartesian_dot = v1.dot(v2)
+cartesian_dot = vv1.dot(vv2)
 # sphericalpolar_dot = cartesian_dot.cartesian_to_spherical()
 sphericalpolar_dot = sphericalpolar_vector1.dot(sphericalpolar_vector2)
 sphericalpolar_dot = round(sphericalpolar_dot, 10)
 
 print("Cartestian Vector Form")
-print("Cartesian Vector 1:", v1)
-print("Cartesian Vector 2:", v2)
+print("Cartesian Vector 1:", vv1)
+print("Cartesian Vector 2:", vv2)
 print(f"Cartesian Subtraction: {cartesian_sub}")
 print(f"Cartesian Addition: {cartesian_add}")
-print(f"Cartesian Magnitude of v1: {v1.norm()}")
-print(f"Cartesian Dot Product: {v1.dot(v2)}")
-print(f"Cartesian Cross Product: {v1.cross(v2)}")
+print(f"Cartesian Magnitude of v1: {vv1.norm()}")
+print(f"Cartesian Dot Product: {vv1.dot(vv2)}")
+print(f"Cartesian Cross Product: {vv1.cross(vv2)}")
 print()
 print("Spherical-Polar Vector Form")
 print(f"Spherical-Polar Vector 1: {sphericalpolar_vector1}")
@@ -177,72 +198,3 @@ print(f"Spherical-Polar Dot Product: {sphericalpolar_dot}")
 print(f"Spherical-Polar Cross Product: {sphericalpolar_cross}")
 print(f"Magnitude of sphericalpolar_vector1: {sphericalpolar_vector1._r}")  # It is the r component.
 print(f"Magnitude of sphericalpolar_vector2: {sphericalpolar_vector2._r}")  # It is the r component.
-
-# Task 3
-
-# 4 Triangles with Cartesian Points
-
-#vv1 = (1, 0, 0)  # i=1, j=0, k=0
-#vv2 = (0, 1, 0)  # i=0, j=1, k=0
-#vv3 = (0, 0, 1)  # i=0, j=0, k=1
-
-vv1 = Vector(0, 0, 0)
-vv2 = Vector(1, 0, 0)
-vv3 = Vector(0, 1, 0)
-
-t1 = (vv1, vv2, vv3)
-
-side1 = vv2 - vv1
-side2 = vv3 - vv1
-cross_product1 = side1.cross(side2)
-Area1 = 0.5 * cross_product1.norm()
-
-print("Area1", Area1)
-
-u1 = Vector(-1,-1,-1)
-u2 = Vector(0,-1,-1)
-u3 = Vector(-1,0,-1)
-
-t2 = (u1, u2, u3)
-
-sideu1 = u2 - u1
-sideu2 = u3 - u1
-cross_productu = sideu1.cross(sideu2)
-Areau = 0.5 * cross_productu.norm()
-print("Areau", Areau)
-
-p1 = Vector(1,0,0)
-p2 = Vector(0,0,1)
-p3 = Vector(0,0,0)
-
-t3 = (p1, p2, p3)
-
-sidep1 = p2 - p1
-sidep2 = p3 - p1
-cross_productp = sidep1.cross(sidep2)
-Areap = 0.5 * cross_productp.norm()
-
-print("Areap", Areap)
-
-q1 = Vector(0,0,0)
-q2 = Vector(1,-1,0)
-q3 = Vector(0,0,1)
-
-t4 = (q1, q2, q3)
-
-sideq1 = q2 - q1
-sideq2 = q3 - q1
-cross_productq = sideq1.cross(sideq2)
-Areaq = 0.5 * cross_productq.norm()
-
-print("Areaq", Areaq)
-
-#print("t1", t1)
-#print("t2", t2)
-#print("t3", t3)
-#print("t4", t4)
-
-
-
-
-
