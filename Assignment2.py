@@ -101,6 +101,15 @@ cartesian_dot = v1.dot(v2)
 sphericalpolar_dot = sphericalpolar_vector1.dot(sphericalpolar_vector2)
 sphericalpolar_dot = round(sphericalpolar_dot, 10) 
 
+print("Cartestian Vector Form")
+print("Cartesian Vector 1:", v1)
+print("Cartesian Vector 2:", v2)
+print(f"Cartesian Subtratction: {cartesian_sub}")
+print(f"Cartesian Addition: {cartesian_add}")
+print(f"Cartesian Magnitude of v1: {v1.norm()}")
+print(f"Cartesian Dot Product: {v1.dot(v2)}")
+print(f"Cartesian Cross Product: {v1.cross(v2)}")
+print()
 print("Spherical-Polar Vector Form")
 print(f"Spherical-Polar Vector 1: {sphericalpolar_vector1}")
 print(f"Spherical-Polar Vector 2: {sphericalpolar_vector2}")
@@ -110,15 +119,3 @@ print(f"Spherical-Polar Dot Product: {sphericalpolar_dot}")
 print(f"Spherical-Polar Cross Product: {sphericalpolar_cross}")
 print(f"Magnitude of sphericalpolar_vector1: {sphericalpolar_vector1._r}") # It is the r component.
 print(f"Magnitude of sphericalpolar_vector2: {sphericalpolar_vector2._r}") # It is the r component.
-print()
-print("Cartestian Vector Form")
-print("Cartesian Vector 1:", v1)
-print("Cartesian Vector 2:", v2)
-print(f"Cartesian Subtratction: {cartesian_sub}")
-print(f"Cartesian Addition: {cartesian_add}")
-print(f"Cartesian Magnitude of v1: {v1.norm()}")
-print(f"Cartesian Dot Product: {v1.dot(v2)}")
-print(f"Cartesian Cross Product: {v1.cross(v2)}")
-
-
-
