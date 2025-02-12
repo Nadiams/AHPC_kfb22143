@@ -74,19 +74,18 @@ class SphericalPolarVector(Vector):
         phi = math.atan2(vector._j, vector._i)
 
         return SphericalPolarVector(r, theta, phi) 
+
+v1 = Vector(1, 0, 0) # i
+v2 = Vector(0, 1, 0) # j
+v3 = Vector(1, 0, 0) # k
     
 # Converts cartesian coordinates to spherical-polar coordinates
-cartesian_vector = Vector(1, 1, 1)
 sphericalpolar_vector = SphericalPolarVector(0, 0, 0) 
 sphericalpolar_vector = sphericalpolar_vector.cartesian(cartesian_vector) 
 
 print(f"Spherical-Polar Vector: {sphericalpolar_vector}")
 
 print(f"Spherical-Polar Vector as a NumPy array: {np.array(sphericalpolar_vector)}")
-
-v1 = Vector(1, 0, 0) # i
-v2 = Vector(0, 1, 0) # j
-v3 = Vector(1, 0, 0) # k
 
 print("Vector v1:", v1)
 print("Vector v2:", v2)
