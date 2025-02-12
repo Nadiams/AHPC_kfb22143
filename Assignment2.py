@@ -216,10 +216,10 @@ Areaq = 0.5 * cross_productq.norm()
 
 print("Areaq", Areaq)
 
-print("t1", t1)
-print("t2", t2)
-print("t3", t3)
-print("t4", t4)
+#print("t1", t1)
+#print("t2", t2)
+#print("t3", t3)
+#print("t4", t4)
 
 
 
