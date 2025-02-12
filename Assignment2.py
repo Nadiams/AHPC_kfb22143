@@ -107,13 +107,34 @@ class SphericalPolarVector(Vector):
 
     def __str__(self):
         """
-        String representation of the vector in spherical-polar form.
+            String representation of the vector in spherical-polar form.
         """
         return (
             f"(r={self._r:.2f}, "
             f"θ={math.degrees(self._theta):.2f}°, "
             f"φ={math.degrees(self._phi):.2f}°)"
     )
+
+    def __trianglearea__(self, AdditionAdditionv1, v2, v3):
+        """
+            Area of a triangle
+            Args:
+                v1, v2, v3: Vector objects representing the vertices.
+            Returns:
+                Area.
+        """
+        side1 = v2 - v1
+        side2 = v3 - v1
+        cross_product = side1.cross(side2)
+        return 0.5 * cross_product.norm()
+
+triangles = [
+    (Vector(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0)),   # Triangle 1
+    (Vector(-1, -1, -1), Vector(0, -1, -1), Vector(-1, 0, -1)),   # Triangle 2
+    (Vector(1, 0, 0), Vector(0, 0, 1), Vector(0, 0, 0)),   # Triangle 3
+    (Vector(0, 0, 0), Vector(1, -1, 0), Vector(0, 0, 1))   # Triangle 4
+]
+
 v1 = Vector(1, 0, 0)  # i=1, j=0, k=0
 v2 = Vector(0, 1, 0)  # i=0, j=1, k=0
 v3 = Vector(0, 0, 1)  # i=0, j=0, k=1
