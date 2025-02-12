@@ -191,6 +191,9 @@ print("t2", t2)
 print("t3", t3)
 print("t4", t4)
 
+Area1 = 0.5 * vv1.cross(vv2).norm()
+
+print("Area1")
 
 
 
