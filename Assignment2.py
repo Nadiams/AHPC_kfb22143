@@ -101,32 +101,6 @@ class SphericalPolarVector(Vector):
         """
         return Vector(self._i, self._j, self._k)
     
-    def __add__(self, other):
-        return Vector(self._i + other._i, self._j + other._j, self._k + other._k)
-
-    def __sub__(self, other):
-        return Vector(self._i - other._i, self._j - other._j, self._k - other._k)
-
-    def norm(self):
-        """Calculates the magnitude of the vector"""
-        return math.sqrt(self._i**2 + self._j**2 + self._k**2)
-    
-    def dot(self, other):
-        return self._i * other._i + self._j * other._j + self._k * other._k
-
-    def cross(self, other):
-        return Vector(
-            self._j * other._k - self._k * other._j,
-            self._k * other._i - self._i * other._k,
-            self._i * other._j - self._j * other._i
-        )
-
-    def __array__(self, dtype=None):
-        if dtype:
-            return np.array([self._i, self._j, self._k], dtype=dtype)
-        else:
-            return np.array([self._i, self._j, self._k])
-    
 # Converts cartesian coordinates to spherical-polar coordinates
 #cartesian_vector = Vector(1, 1, 1)
 #sphericalpolar_vector = SphericalPolarVector(0, 0, 0) 
