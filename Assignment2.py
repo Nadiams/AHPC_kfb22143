@@ -161,39 +161,65 @@ print(f"Magnitude of sphericalpolar_vector2: {sphericalpolar_vector2._r}")  # It
 
 # 4 Triangles with Cartesian Points
 
-vv1 = (1, 0, 0)  # i=1, j=0, k=0
-vv2 = (0, 1, 0)  # i=0, j=1, k=0
-vv3 = (0, 0, 1)  # i=0, j=0, k=1
+#vv1 = (1, 0, 0)  # i=1, j=0, k=0
+#vv2 = (0, 1, 0)  # i=0, j=1, k=0
+#vv3 = (0, 0, 1)  # i=0, j=0, k=1
+
+vv1 = Vector(0, 0, 0)
+vv2 = Vector(1, 0, 0)
+vv3 = Vector(0, 1, 0)
 
 t1 = (vv1, vv2, vv3)
 
-u1 = (-1,-1,-1)
-u2 = (0,-1,-1)
-u3 = (-1,0,-1)
+side1 = vv2 - vv1
+side2 = vv3 - vv1
+cross_product1 = side1.cross(side2)
+Area1 = 0.5 * cross_product1.norm()
 
+print("Area1", Area1)
+
+u1 = Vector(-1,-1,-1)
+u2 = Vector(0,-1,-1)
+u3 = Vector(-1,0,-1)
 
 t2 = (u1, u2, u3)
 
-p1 = (1,0,0)
-p2 = (0,0,1)
-p3 = (0,0,0)
+sideu1 = u2 - u1
+sideu2 = u3 - u1
+cross_productu = sideu1.cross(sideu2)
+Areau = 0.5 * cross_productu.norm()
+print("Areau", Areau)
+
+p1 = Vector(1,0,0)
+p2 = Vector(0,0,1)
+p3 = Vector(0,0,0)
 
 t3 = (p1, p2, p3)
 
-q1 = (0,0,0)
-q2 = (1,-1,0)
-q3 = (0,0,1)
+sidep1 = p2 - p1
+sidep2 = p3 - p1
+cross_productp = sidep1.cross(sidep2)
+Areap = 0.5 * cross_productp.norm()
+
+print("Areap", Areap)
+
+q1 = Vector(0,0,0)
+q2 = Vector(1,-1,0)
+q3 = Vector(0,0,1)
 
 t4 = (q1, q2, q3)
+
+sideq1 = q2 - q1
+sideq2 = q3 - q1
+cross_productq = sideq1.cross(sideq2)
+Areaq = 0.5 * cross_productq.norm()
+
+print("Areaq", Areaq)
 
 print("t1", t1)
 print("t2", t2)
 print("t3", t3)
 print("t4", t4)
-
-Area1 = 0.5 * vv1.cross(vv2).norm()
-
-print("Area1")
 
 
 
