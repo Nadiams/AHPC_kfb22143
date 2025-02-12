@@ -46,6 +46,17 @@ class Vector:
             return np.array([self._i, self._j, self._k], dtype=dtype)
         else:
             return np.array([self._i, self._j, self._k])
+        
+            
+    def cartesian_to_spherical(self):
+        """
+            This is where the conversion occurs.
+        """
+        r = self.norm()
+        theta = math.acos(self._k / r) if r != 0 else 0
+        phi = math.atan2(self._j, self._i)
+
+        return SphericalPolarVector(r, theta, phi)
     
 class SphericalPolarVector(Vector):
     """ 
@@ -68,12 +79,53 @@ class SphericalPolarVector(Vector):
         return f"(r={self._r:.2f}, θ={math.degrees(self._theta):.2f}°, φ={math.degrees(self._phi):.2f}°)"
 
     def cartesian(self, vector):
-        """Converts Cartesian coordinates vectors to Spherical-Polar coordinates."""
+        """
+            Converts Cartesian vectors to Spherical-Polar vectors by defining
+            the nathenmatical expression of a matrix (the vector).
+        """
         r = math.sqrt(vector._i**2 + vector._j**2 + vector._k**2)
         theta = math.acos(vector._k / r) if r != 0 else 0
         phi = math.atan2(vector._j, vector._i)
 
         return SphericalPolarVector(r, theta, phi) 
+
+    
+        super().__init__(i, j, k)
+    
+    def __str__(self):
+        return f"(r={self._r:.2f}, θ={math.degrees(self._theta):.2f}°, φ={math.degrees(self._phi):.2f}°)"
+
+    def spherical_to_cartesian(self):
+        """
+            Converts Spherical-Polar vector back to a Cartesian vector to check process works.
+        """
+        return Vector(self._i, self._j, self._k)
+    
+    def __add__(self, other):
+        return Vector(self._i + other._i, self._j + other._j, self._k + other._k)
+
+    def __sub__(self, other):
+        return Vector(self._i - other._i, self._j - other._j, self._k - other._k)
+
+    def norm(self):
+        """Calculates the magnitude of the vector"""
+        return math.sqrt(self._i**2 + self._j**2 + self._k**2)
+    
+    def dot(self, other):
+        return self._i * other._i + self._j * other._j + self._k * other._k
+
+    def cross(self, other):
+        return Vector(
+            self._j * other._k - self._k * other._j,
+            self._k * other._i - self._i * other._k,
+            self._i * other._j - self._j * other._i
+        )
+
+    def __array__(self, dtype=None):
+        if dtype:
+            return np.array([self._i, self._j, self._k], dtype=dtype)
+        else:
+            return np.array([self._i, self._j, self._k])
     
 # Converts cartesian coordinates to spherical-polar coordinates
 #cartesian_vector = Vector(1, 1, 1)
@@ -93,10 +145,18 @@ sphericalpolar_vector1 = sphericalpolar_vector.cartesian(v1)
 sphericalpolar_vector2 = sphericalpolar_vector.cartesian(v2) 
 sphericalpolar_vector3 = sphericalpolar_vector.cartesian(v3) 
 
-print("v1 - v2:", sphericalpolar_vector1 - sphericalpolar_vector2)
-print(f"Spherical-Polar Vector: {sphericalpolar_vector1}")
-print(f"Spherical-Polar Vector: {sphericalpolar_vector2}")
-print(f"Spherical-Polar Vector: {sphericalpolar_vector3}")
+
+sphericalpolar_vector1 = v1.cartesian_to_spherical()
+sphericalpolar_vector2= v2.cartesian_to_spherical()
+sphericalpolar_vector3 = v3.cartesian_to_spherical()
+
+# Convert back to Cartesian to check
+cartesian_v1 = sphericalpolar_vector1.spherical_to_cartesian()
+
+print(f"Spherical-Polar Vector (v1): {sphericalpolar_vector1}")
+print(f"Spherical-Polar Vector (v2): {sphericalpolar_vector2}")
+print(f"Spherical-Polar Vector (v3): {sphericalpolar_vector3}")
+print(f"Converted back to Cartesian: {cartesian_v1}")
 print("Vector v1:", v1)
 print("Vector v2:", v2)
 print("Magnitude of v1:", v1.norm())
@@ -104,3 +164,7 @@ print("v1 + v2:", v1 + v2)
 print("v1 - v2:", v1 - v2)
 print("Dot Product v1 · v2:", v1.dot(v2))
 print("Cross Product v1 × v2:", v1.cross(v2))
+print("sphericalv1 - sphericalv2:", sphericalpolar_vector1 - sphericalpolar_vector2)
+
+
+
