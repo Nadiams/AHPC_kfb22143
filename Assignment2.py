@@ -77,15 +77,34 @@ class SphericalPolarVector(Vector):
     def __str__(self):
         return f"(r={self._r:.2f}, θ={math.degrees(self._theta):.2f}°, φ={math.degrees(self._phi):.2f}°)"
 
-v1 = Vector(1, 0, 0) # i
-v2 = Vector(0, 1, 0) # j
-v3 = Vector(1, 0, 0) # k
+v1 = Vector(1, 0, 0) # i=1, j=0, k=0
+v2 = Vector(0, 1, 0) # i=0, j=1, k=0
+v3 = Vector(0, 0, 1) # i=0, j=0, k=1
 sphericalpolar_vector1 = v1.cartesian_to_spherical()
 sphericalpolar_vector2 = v2.cartesian_to_spherical()
 sphericalpolar_vector3 = v3.cartesian_to_spherical()
 
 cartesian_sub = v1 - v2
 sphericalpolar_sub = cartesian_sub.cartesian_to_spherical()
+
+cartesian_add = v1 + v2
+sphericalpolar_add = cartesian_add.cartesian_to_spherical()
+
+cartesian_mag = v1.norm()
+sphericalpolar_mag = cartesian_mag.cartesian_to_spherical()
+
+cartesian_cross = v1.cross(v2)
+sphericalpolar_cross = cartesian_cross.cartesian_to_spherical()
+
+cartesian_dot = v1.dot(v2)
+sphericalpolar_dot = cartesian_dot.cartesian_to_spherical()
+
+print("sphericalpolar_dot", sphericalpolar_dot)
+print("sphericalpolar_cross", sphericalpolar_cross)
+print("sphericalpolar_mag", sphericalpolar_mag)
+print(f"Spherical-Polar Subtraction (v1 + v2): {sphericalpolar_add}")
+print()
+
 
 print(f"Spherical-Polar Vector (v1): {sphericalpolar_vector1}")
 print(f"Spherical-Polar Vector (v2): {sphericalpolar_vector2}")
