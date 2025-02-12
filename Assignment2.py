@@ -156,3 +156,43 @@ print(f"Spherical-Polar Dot Product: {sphericalpolar_dot}")
 print(f"Spherical-Polar Cross Product: {sphericalpolar_cross}")
 print(f"Magnitude of sphericalpolar_vector1: {sphericalpolar_vector1._r}")  # It is the r component.
 print(f"Magnitude of sphericalpolar_vector2: {sphericalpolar_vector2._r}")  # It is the r component.
+
+# Task 3
+
+# 4 Triangles with Cartesian Points
+
+vv1 = (1, 0, 0)  # i=1, j=0, k=0
+vv2 = (0, 1, 0)  # i=0, j=1, k=0
+vv3 = (0, 0, 1)  # i=0, j=0, k=1
+
+t1 = (vv1, vv2, vv3)
+
+u1 = (-1,-1,-1)
+u2 = (0,-1,-1)
+u3 = (-1,0,-1)
+
+
+t2 = (u1, u2, u3)
+
+p1 = (1,0,0)
+p2 = (0,0,1)
+p3 = (0,0,0)
+
+t3 = (p1, p2, p3)
+
+q1 = (0,0,0)
+q2 = (1,-1,0)
+q3 = (0,0,1)
+
+t4 = (q1, q2, q3)
+
+print("t1", t1)
+print("t2", t2)
+print("t3", t3)
+print("t4", t4)
+
+
+
+
+
+
