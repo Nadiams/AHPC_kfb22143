@@ -53,16 +53,16 @@ class SphericalPolarVector(Vector):
             pass to child class.
     """
     def __init__(self, r, theta, phi):
-
+        
+        self._r = r
+        self._theta = theta
+        self._phi = phi
+    
         i = r * math.sin(theta) * math.cos(phi)  # x-component
         j = r * math.sin(theta) * math.sin(phi)  # y-component
         k = r * math.cos(theta)                  # z-component
         
         super().__init__(i, j, k)
-
-        self._r = r
-        self._theta = theta
-        self._phi = phi
 
     def __str__(self):
         return f"(r={self._r:.2f}, θ={math.degrees(self._theta):.2f}°, φ={math.degrees(self._phi):.2f}°)"
@@ -89,11 +89,14 @@ v3 = Vector(1, 0, 0) # k
 # Converts cartesian coordinates to spherical-polar coordinates
 
 sphericalpolar_vector = SphericalPolarVector(0, 0, 0) 
-sphericalpolar_vector1 = sphericalpolar_vector.cartesian(v2) 
-sphericalpolar_vector2 = sphericalpolar_vector.cartesian(v3) 
+sphericalpolar_vector1 = sphericalpolar_vector.cartesian(v1) 
+sphericalpolar_vector2 = sphericalpolar_vector.cartesian(v2) 
+sphericalpolar_vector3 = sphericalpolar_vector.cartesian(v3) 
 
 print("v1 - v2:", sphericalpolar_vector1 - sphericalpolar_vector2)
-
+print(f"Spherical-Polar Vector: {sphericalpolar_vector1}")
+print(f"Spherical-Polar Vector: {sphericalpolar_vector2}")
+print(f"Spherical-Polar Vector: {sphericalpolar_vector3}")
 print("Vector v1:", v1)
 print("Vector v2:", v2)
 print("Magnitude of v1:", v1.norm())
