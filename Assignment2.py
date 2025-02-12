@@ -5,7 +5,6 @@ Created on Mon Feb 10 14:01:27 2025
 
 @author: nadia
 """
-
 import math
 import numpy as np
 
@@ -30,7 +29,7 @@ class Vector:
     def norm(self):
         """Calculates the magnitude of the vector"""
         return math.sqrt(self._i**2 + self._j**2 + self._k**2)
-    
+
     def dot(self, other):
         return self._i * other._i + self._j * other._j + self._k * other._k
 
@@ -46,8 +45,7 @@ class Vector:
             return np.array([self._i, self._j, self._k], dtype=dtype)
         else:
             return np.array([self._i, self._j, self._k])
-        
-            
+
     def cartesian_to_spherical(self):
         """
             This is where the conversion occurs.
@@ -59,9 +57,8 @@ class Vector:
         return SphericalPolarVector(r, theta, phi)
     
 class SphericalPolarVector(Vector):
-    """ 
-            Using inheritance to take previous methods used in parent class to 
-            pass to child class.
+    """
+    Using inheritance to take previous methods used in parent class to pass to child class.
     """
     def __init__(self, r, theta, phi):
         self._r = r
@@ -70,16 +67,16 @@ class SphericalPolarVector(Vector):
         
         i = r * math.sin(theta) * math.cos(phi)  # x-component
         j = r * math.sin(theta) * math.sin(phi)  # y-component
-        k = r * math.cos(theta)                  # z-component
+        k = r * math.cos(theta)  # z-component
         
         super().__init__(i, j, k)
 
     def __str__(self):
         return f"(r={self._r:.2f}, θ={math.degrees(self._theta):.2f}°, φ={math.degrees(self._phi):.2f}°)"
 
-v1 = Vector(1, 0, 0) # i=1, j=0, k=0
-v2 = Vector(0, 1, 0) # i=0, j=1, k=0
-v3 = Vector(0, 0, 1) # i=0, j=0, k=1
+v1 = Vector(1, 0, 0)  # i=1, j=0, k=0
+v2 = Vector(0, 1, 0)  # i=0, j=1, k=0
+v3 = Vector(0, 0, 1)  # i=0, j=0, k=1
 sphericalpolar_vector1 = v1.cartesian_to_spherical()
 sphericalpolar_vector2 = v2.cartesian_to_spherical()
 sphericalpolar_vector3 = v3.cartesian_to_spherical()
@@ -97,14 +94,14 @@ cartesian_cross = v1.cross(v2)
 sphericalpolar_cross = cartesian_cross.cartesian_to_spherical()
 
 cartesian_dot = v1.dot(v2)
-#sphericalpolar_dot = cartesian_dot.cartesian_to_spherical()
+# sphericalpolar_dot = cartesian_dot.cartesian_to_spherical()
 sphericalpolar_dot = sphericalpolar_vector1.dot(sphericalpolar_vector2)
-sphericalpolar_dot = round(sphericalpolar_dot, 10) 
+sphericalpolar_dot = round(sphericalpolar_dot, 10)
 
 print("Cartestian Vector Form")
 print("Cartesian Vector 1:", v1)
 print("Cartesian Vector 2:", v2)
-print(f"Cartesian Subtratction: {cartesian_sub}")
+print(f"Cartesian Subtraction: {cartesian_sub}")
 print(f"Cartesian Addition: {cartesian_add}")
 print(f"Cartesian Magnitude of v1: {v1.norm()}")
 print(f"Cartesian Dot Product: {v1.dot(v2)}")
@@ -117,5 +114,5 @@ print(f"Spherical-Polar Subtraction: {sphericalpolar_sub}")
 print(f"Spherical-Polar Addition: {sphericalpolar_add}")
 print(f"Spherical-Polar Dot Product: {sphericalpolar_dot}")
 print(f"Spherical-Polar Cross Product: {sphericalpolar_cross}")
-print(f"Magnitude of sphericalpolar_vector1: {sphericalpolar_vector1._r}") # It is the r component.
-print(f"Magnitude of sphericalpolar_vector2: {sphericalpolar_vector2._r}") # It is the r component.
+print(f"Magnitude of sphericalpolar_vector1: {sphericalpolar_vector1._r}")  # It is the r component.
+print(f"Magnitude of sphericalpolar_vector2: {sphericalpolar_vector2._r}")  # It is the r component.
