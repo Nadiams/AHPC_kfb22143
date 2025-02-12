@@ -91,18 +91,19 @@ cartesian_add = v1 + v2
 sphericalpolar_add = cartesian_add.cartesian_to_spherical()
 
 cartesian_mag = v1.norm()
-sphericalpolar_mag = cartesian_mag.cartesian_to_spherical()
+#sphericalpolar_mag = cartesian_mag.cartesian_to_spherical()
 
 cartesian_cross = v1.cross(v2)
 sphericalpolar_cross = cartesian_cross.cartesian_to_spherical()
 
 cartesian_dot = v1.dot(v2)
-sphericalpolar_dot = cartesian_dot.cartesian_to_spherical()
+#sphericalpolar_dot = cartesian_dot.cartesian_to_spherical()
 
-print("sphericalpolar_dot", sphericalpolar_dot)
+
+#print("sphericalpolar_dot", sphericalpolar_dot)
 print("sphericalpolar_cross", sphericalpolar_cross)
-print("sphericalpolar_mag", sphericalpolar_mag)
-print(f"Spherical-Polar Subtraction (v1 + v2): {sphericalpolar_add}")
+#print("sphericalpolar_mag", sphericalpolar_mag)
+print(f"Spherical-Polar Addition (v1 + v2): {sphericalpolar_add}")
 print()
 
 
