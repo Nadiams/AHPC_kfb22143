@@ -94,6 +94,14 @@ class Vector:
         side2 = v3 - self
         cross_product = side1.cross(side2)
         return 0.5 * cross_product.norm()
+    
+    def angle_with(self, theta):
+        """
+        Args:
+            theta
+        Returns:
+            cos_angle
+        """
 
 class SphericalPolarVector(Vector):
     """
@@ -150,6 +158,8 @@ q1 = Vector(0,0,0)
 q2 = Vector(1,-1,0)
 q3 = Vector(0,0,1)
 
+# Task 3(a)
+
 area1 = vv1.trianglearea(vv2, vv3)
 print("Cartesian Triangle 1 Area: ", area1)
 area2 = u1.trianglearea(u2, u3)
@@ -158,6 +168,10 @@ area3 = p1.trianglearea(p2, p3)
 print("Cartesian Triangle 3 Area: ", area3)
 area4 = q1.trianglearea(q2, q3)
 print("Cartesian Triangle 4 Area: ", area4)
+
+# Task 3(b)
+
+# Task 1 and 2
 
 sphericalpolar_vector1 = vv1.cartesian_to_spherical()
 sphericalpolar_vector2 = vv2.cartesian_to_spherical()
