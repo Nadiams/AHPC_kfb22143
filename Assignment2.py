@@ -154,7 +154,7 @@ class SphericalPolarVector(Vector):
             Args:
                 (r, theta, phi).
             Returns:
-                theta, phi in degrees.
+                theta and phi in degrees.
         """
         r = self.norm()
         theta = math.acos(self.k / r) if r != 0 else 0
