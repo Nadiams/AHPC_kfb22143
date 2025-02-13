@@ -135,7 +135,7 @@ class Vector:
         sph_norm_product = self.norm() * sph_angle.norm()
         sph_cos_angle = sph_dot_product / sph_norm_product
         return math.degrees(math.acos(sph_cos_angle))
-    
+
     def sphericaltriangleangles(self, a2, a3):
         """
             Args:
@@ -153,6 +153,19 @@ class Vector:
         sph_angle3 = sph_side3.sphericalangleproduct(sph_side1)
 
         return sph_angle1, sph_angle2, sph_angle3
+
+    def sphericaltrianglearea(self, a2, a3):
+        """
+            Area of a triangle
+            Args:
+                self=a1, a2, a3: Vector objects representing the vertices.
+            Returns:
+                Area.
+        """
+        sph_side1 = a2 - self
+        sph_side2 = a3 - self
+        sph_cross_product = sph_side1.cross(sph_side2)
+        return 0.5 * sph_cross_product.norm()
 
 class SphericalPolarVector(Vector):
     """
@@ -227,13 +240,13 @@ d3 = SphericalPolarVector(1, 90, 270)
 
 # Task 3(a)
 print("Spherical-Polar Vector Form")
-sph_area1 = a1.trianglearea(a2, a3)
+sph_area1 = a1.sphericaltrianglearea(a2, a3)
 print(f"Area of Triangle 1: {sph_area1:.2f}")
-sph_area2 = b1.trianglearea(b2, b3)
+sph_area2 = b1.sphericaltrianglearea(b2, b3)
 print(f"Area of Triangle 2: {sph_area2:.2f}")
-sph_area3 = c1.trianglearea(c2, c3)
+sph_area3 = c1.sphericaltrianglearea(c2, c3)
 print(f"Area of Triangle 3: {sph_area3:.2f}")
-sph_area4 = d1.trianglearea(d2, d3)
+sph_area4 = d1.sphericaltrianglearea(d2, d3)
 print(f"Area of Triangle 4: {sph_area4:.2f}")
 print()
 print("Cartestian Vector Form")
