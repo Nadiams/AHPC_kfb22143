@@ -156,6 +156,36 @@ class SphericalPolarVector(Vector):
             f"θ={math.degrees(self._theta):.2f}°, "
             f"φ={math.degrees(self._phi):.2f}°)"
     )
+    
+    def sphericalangleproduct(self, sph_angle):
+        """
+        Args:
+            self=a1, angle
+        Returns:
+            cos_angle
+        """
+        sph_dot_product = self.dot(sph_angle)
+        sph_norm_product = self.norm() * sph_angle.norm()
+        sph_cos_angle = sph_dot_product / sph_norm_product
+        return math.degrees(math.acos(sph_cos_angle))
+    
+    def sphericaltriangleangles(self, a2, a3):
+        """
+            Args:
+                self=a1, a2 and a3
+    
+            Returns:
+                Angles of the triangles in spherical-polar form in degrees.
+        """
+        sph_side1 = a2 - self
+        sph_side2 = a3 - self
+        sph_side3 = a3 - a2
+
+        sph_angle1 = sph_side1.sphericalangleproduct(sph_side2)
+        sph_angle2 = sph_side2.sphericalangleproduct(sph_side3)
+        sph_angle3 = sph_side3.sphericalangleproduct(sph_side1)
+
+        return sph_angle1, sph_angle2, sph_angle3
 
 #v1 = Vector(1, 0, 0)  # i=1, j=0, k=0
 #v2 = Vector(0, 1, 0)  # i=0, j=1, k=0
@@ -233,6 +263,30 @@ c3 = SphericalPolarVector(2, 90, 0)
 d1 = SphericalPolarVector(1, 90, 0)
 d2 = SphericalPolarVector(1, 90, 180)
 d3 = SphericalPolarVector(1, 90, 270)
+
+sph_angles1 = a1.sphericaltriangleangles(a2, a3)
+print(f"Triangle 1: 1st Angle: {sph_angles1[0]:.2f}°, "
+      f"2nd Angle: {sph_angles1[1]:.2f}°,"
+      f"3rd Angle: {sph_angles1[2]:.2f}°"
+      )
+
+sph_angles2 = b1.triangleangles(b2, b3)
+print(f"Triangle 2: 1st Angle: {angles2[0]:.2f}°, "
+      f"2nd Angle: {angles2[1]:.2f}°,"
+      f"3rd Angle: {angles2[2]:.2f}°"
+      )
+
+sph_angles3 = c1.triangleangles(c2, c3)
+print(f"Triangle 3: 1st Angle: {angles3[0]:.2f}°, "
+      f"2nd Angle: {angles3[1]:.2f}°,"
+      f"3rd Angle: {angles3[2]:.2f}°"
+      )
+
+sph_angles4 = d1.triangleangles(d2, d3)
+print(f"Triangle 4: 1st Angle: {angles4[0]:.2f}°, "
+      f"2nd Angle: {angles4[1]:.2f}°,"
+      f"3rd Angle: {angles4[2]:.2f}°"
+      )
 
 # Task 1 and 2
 
