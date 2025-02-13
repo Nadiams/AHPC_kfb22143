@@ -208,7 +208,34 @@ q1 = Vector(0,0,0)
 q2 = Vector(1,-1,0)
 q3 = Vector(0,0,1)
 
+# 4 Triangles with Spherical-Polar Points
+a1 = SphericalPolarVector(0, 0, 0)
+a2 = SphericalPolarVector(1, 0, 0)
+a3 = SphericalPolarVector(1, 90, 0)
+
+b1 = SphericalPolarVector(1, 0, 0)
+b2 = SphericalPolarVector(1, 90, 0)
+b3 = SphericalPolarVector(1, 90, 180)
+
+c1 = SphericalPolarVector(0, 0, 0)
+c2 = SphericalPolarVector(2, 0, 0)
+c3 = SphericalPolarVector(2, 90, 0)
+
+d1 = SphericalPolarVector(1, 90, 0)
+d2 = SphericalPolarVector(1, 90, 180)
+d3 = SphericalPolarVector(1, 90, 270)
+
 # Task 3(a)
+print("Spherical-Polar Vector Form")
+sph_area1 = a1.trianglearea(a2, a3)
+print(f"Area of Triangle 1: {sph_area1:.2f}")
+sph_area2 = b1.trianglearea(b2, b3)
+print(f"Area of Triangle 2: {sph_area2:.2f}")
+sph_area3 = c1.trianglearea(c2, c3)
+print(f"Area of Triangle 3: {sph_area3:.2f}")
+sph_area4 = d1.trianglearea(d2, d3)
+print(f"Area of Triangle 4: {sph_area4:.2f}")
+print()
 print("Cartestian Vector Form")
 area1 = vv1.trianglearea(vv2, vv3)
 print(f"Area of Triangle 1: {area1:.2f}")
@@ -218,9 +245,7 @@ area3 = p1.trianglearea(p2, p3)
 print(f"Area of Triangle 3: {area3:.2f}")
 area4 = q1.trianglearea(q2, q3)
 print(f"Area of Triangle 4: {area4:.2f}")
-
 print()
-
 # Task 3(b)
 print("Cartestian Vector Form")
 angles1 = vv1.triangleangles(vv2, vv3)
@@ -248,23 +273,6 @@ print(f"Cartesian Triangle 4: 1st Angle: {angles4[0]:.2f}°, "
       )
 print()
 # Task 3 (c)
-
-# 4 Triangles with Spherical-Polar Points
-a1 = SphericalPolarVector(0, 0, 0)
-a2 = SphericalPolarVector(1, 0, 0)
-a3 = SphericalPolarVector(1, 90, 0)
-
-b1 = SphericalPolarVector(1, 0, 0)
-b2 = SphericalPolarVector(1, 90, 0)
-b3 = SphericalPolarVector(1, 90, 180)
-
-c1 = SphericalPolarVector(0, 0, 0)
-c2 = SphericalPolarVector(2, 0, 0)
-c3 = SphericalPolarVector(2, 90, 0)
-
-d1 = SphericalPolarVector(1, 90, 0)
-d2 = SphericalPolarVector(1, 90, 180)
-d3 = SphericalPolarVector(1, 90, 270)
 print("Spherical-Polar Vector Form")
 sph_angles1 = a1.sphericaltriangleangles(a2, a3)
 print(f"Spherical-Polar Triangle 1: 1st Angle: {sph_angles1[0]:.2f}°, "
