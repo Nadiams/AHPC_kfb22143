@@ -125,7 +125,7 @@ class Vector:
 
         return angle1, angle2, angle3
 
-    def sphericalangleproduct(self, r, sph_angle):
+    def sphericalangleproduct(self, sph_angle):
         """
         Args:
             self=a1, angle, pi, radius = r component.
@@ -165,7 +165,7 @@ class Vector:
         """
         cross = a2.cross(a3)
         product = self.dot(cross)
-        numerator = product.norm()
+        numerator = abs(product)
         
         denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
         return numerator / denom
