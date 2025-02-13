@@ -168,7 +168,7 @@ class Vector:
         numerator = abs(product)
         
         denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
-        return numerator / denom
+        return 2*np.arctan(numerator / denom)
 
 class SphericalPolarVector(Vector):
     """
