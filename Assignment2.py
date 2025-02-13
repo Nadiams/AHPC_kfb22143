@@ -164,11 +164,11 @@ class Vector:
                 Area.
         """
         cross = a2.cross(a3)
-        denom = 1 + self.dot(cross)
-        sph_side1 = a2 - self
-        sph_side2 = a3 - self
-        sph_cross_product = sph_side1.cross(sph_side2)
-        return 0.5 * sph_cross_product.norm()
+        product = self.dot(cross)
+        numerator = product.norm()
+        
+        denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
+        return numerator / denom
 
 class SphericalPolarVector(Vector):
     """
@@ -225,21 +225,21 @@ q2 = Vector(1,-1,0)
 q3 = Vector(0,0,1)
 
 # 4 Triangles with Spherical-Polar Points
-a1 = SphericalPolarVector(0, 0, 0)
-a2 = SphericalPolarVector(1, 0, 0)
-a3 = SphericalPolarVector(1, 90, 0)
+a1 = Vector(0, 0, 0)
+a2 = Vector(1, 0, 0)
+a3 = Vector(1, 90, 0)
 
-b1 = SphericalPolarVector(1, 0, 0)
-b2 = SphericalPolarVector(1, 90, 0)
-b3 = SphericalPolarVector(1, 90, 180)
+b1 = Vector(1, 0, 0)
+b2 = Vector(1, 90, 0)
+b3 = Vector(1, 90, 180)
 
-c1 = SphericalPolarVector(0, 0, 0)
-c2 = SphericalPolarVector(2, 0, 0)
-c3 = SphericalPolarVector(2, 90, 0)
+c1 = Vector(0, 0, 0)
+c2 = Vector(2, 0, 0)
+c3 = Vector(2, 90, 0)
 
-d1 = SphericalPolarVector(1, 90, 0)
-d2 = SphericalPolarVector(1, 90, 180)
-d3 = SphericalPolarVector(1, 90, 270)
+d1 = Vector(1, 90, 0)
+d2 = Vector(1, 90, 180)
+d3 = Vector(1, 90, 270)
 
 # Task 3(a)
 print("Spherical-Polar Vector Form")
