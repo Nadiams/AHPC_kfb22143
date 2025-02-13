@@ -79,7 +79,6 @@ class Vector:
         r = self.norm()
         theta = math.acos(self._k / r) if r != 0 else 0
         phi = math.atan2(self._j, self._i)
-
         return SphericalPolarVector(r, theta, phi)
     
     def trianglearea(self, v2, v3):
@@ -95,12 +94,25 @@ class Vector:
         cross_product = side1.cross(side2)
         return 0.5 * cross_product.norm()
     
-    def angle_with(self, theta):
+    def angleproduct(self, theta):
         """
         Args:
             theta
         Returns:
             cos_angle
+        """
+        dot_product = self.dot(theta)
+        norm_product = self.norm() * theta.norm()
+        cos_angle = dot_product / norm_product
+        return math.degrees(math.acos(cos_angle))
+    
+    def triangleangles(self, v2, v3):
+        """
+            Args:
+                self, v2 and v3
+    
+            Returns:
+                Angles of the triangles.
         """
 
 class SphericalPolarVector(Vector):
