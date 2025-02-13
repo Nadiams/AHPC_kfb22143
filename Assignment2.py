@@ -114,9 +114,15 @@ class Vector:
             Returns:
                 Angles of the triangles.
         """
-        self._v1 = v1
-        self._v2 = v2
-        self._v3 = v3
+        side1 = v2 - self
+        side2 = v3 - self
+        side3 = v3 - v2
+
+        angle1 = side1.angleproduct(side2)
+        angle2 = side2.angleproduct(side3)
+        angle3 = side3.angleproduct(side1)
+
+        return angle1, angle2, angle3
 
 class SphericalPolarVector(Vector):
     """
@@ -176,13 +182,13 @@ q3 = Vector(0,0,1)
 # Task 3(a)
 
 area1 = vv1.trianglearea(vv2, vv3)
-print("Cartesian Triangle 1 Area: ", area1)
+print(f"Area of Triangle 1: {area1:.2f}")
 area2 = u1.trianglearea(u2, u3)
-print("Cartesian Triangle 2 Area: ", area2)
+print(f"Area of Triangle 2: {area2:.2f}")
 area3 = p1.trianglearea(p2, p3)
-print("Cartesian Triangle 3 Area: ", area3)
+print(f"Area of Triangle 3: {area3:.2f}")
 area4 = q1.trianglearea(q2, q3)
-print("Cartesian Triangle 4 Area: ", area4)
+print(f"Area of Triangle 4: {area4:.2f}")
 
 # Task 3(b)
 
