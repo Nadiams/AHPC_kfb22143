@@ -148,7 +148,7 @@ class SphericalPolarVector(Vector):
 
         super().__init__(i, j, k)
 
-    def to_spherical(self):
+    def cart_to_spherical(self):
         """
             To convert from Cartesian to Spherical-Polar.
             Args:
