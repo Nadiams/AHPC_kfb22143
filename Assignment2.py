@@ -162,7 +162,6 @@ class SphericalPolarVector(Vector):
 #v3 = Vector(0, 0, 1)  # i=0, j=0, k=1
 
 # 4 Triangles with Cartesian Points
-
 vv1 = Vector(0, 0, 0)  # i=1, j=0, k=0
 vv2 = Vector(0, 1, 0)  # i=0, j=1, k=0
 vv3 = Vector(0, 0, 1)  # i=0, j=0, k=1
@@ -191,6 +190,25 @@ area4 = q1.trianglearea(q2, q3)
 print(f"Area of Triangle 4: {area4:.2f}")
 
 # Task 3(b)
+
+# Task 3 (c)
+
+# 4 Triangles with Spherical-Polar Points
+a1 = SphericalPolarVector(0, 0, 0)
+a2 = SphericalPolarVector(1, 0, 0)
+a3 = SphericalPolarVector(1, 90, 0)
+
+b1 = SphericalPolarVector(1, 0, 0)
+b2 = SphericalPolarVector(1, 90, 0)
+b3 = SphericalPolarVector(1, 90, 180)
+
+c1 = SphericalPolarVector(0, 0, 0)
+c2 = SphericalPolarVector(2, 0, 0)
+c3 = SphericalPolarVector(2, 90, 0)
+
+d1 = SphericalPolarVector(1, 90, 0)
+d2 = SphericalPolarVector(1, 90, 180)
+d3 = SphericalPolarVector(1, 90, 270)
 
 # Task 1 and 2
 
