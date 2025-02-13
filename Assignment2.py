@@ -139,14 +139,28 @@ class SphericalPolarVector(Vector):
                 r, theta and phi.
         """
         self._r = r
-        self._theta = theta
-        self._phi = phi
+        self._theta = math.radians(theta)
+        self._phi = math.radians(phi)
 
         i = r * math.sin(theta) * math.cos(phi)  # x-component
         j = r * math.sin(theta) * math.sin(phi)  # y-component
         k = r * math.cos(theta)  # z-component
 
         super().__init__(i, j, k)
+
+    def to_spherical(self):
+        """
+            To convert from Cartesian to Spherical-Polar.
+            Args:
+                (r, theta, phi).
+            Returns:
+                theta, phi in degrees.
+        """
+        r = self.norm()
+        theta = math.acos(self.k / r) if r != 0 else 0
+        phi = math.atan2(self.j, self.i)
+
+        return r, math.degrees(theta), math.degrees(phi)
 
     def sphericalangleproduct(self, sph_angle):
         """
