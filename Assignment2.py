@@ -125,36 +125,6 @@ class Vector:
 
         return angle1, angle2, angle3
 
-    def sphericalangleproduct(self, sph_angle):
-        """
-        Args:
-            self=a1, angle, pi, radius = r component.
-        Returns:
-            cos_angle
-        """
-        sph_dot_product = self.dot(sph_angle)
-        sph_norm_product = self.norm() * sph_angle.norm()
-        sph_cos_angle = sph_dot_product / sph_norm_product
-        return math.degrees(math.acos(sph_cos_angle))
-
-    def sphericaltriangleangles(self, a2, a3):
-        """
-            Args:
-                self=a1, a2 and a3
-    
-            Returns:
-                Angles of the triangles in spherical-polar form in degrees.
-        """
-        sph_side1 = a2 - self
-        sph_side2 = a3 - self
-        sph_side3 = a3 - a2
-
-        sph_angle1 = sph_side1.sphericalangleproduct(sph_side2)
-        sph_angle2 = sph_side2.sphericalangleproduct(sph_side3)
-        sph_angle3 = sph_side3.sphericalangleproduct(sph_side1)
-
-        return sph_angle1, sph_angle2, sph_angle3
-
 class SphericalPolarVector(Vector):
     """
     Uses inheritance to take previous methods used in parent class to pass to child class.
@@ -178,15 +148,35 @@ class SphericalPolarVector(Vector):
 
         super().__init__(i, j, k)
 
-    def __str__(self):
+    def sphericalangleproduct(self, sph_angle):
         """
-            String representation of the vector in spherical-polar form.
+        Args:
+            self=a1, angle, pi, radius = r component.
+        Returns:
+            cos_angle
         """
-        return (
-            f"(r={self._r:.2f}, "
-            f"θ={math.degrees(self._theta):.2f}°, "
-            f"φ={math.degrees(self._phi):.2f}°)"
-    )
+        sph_dot_product = self.dot(sph_angle)
+        sph_norm_product = self.norm() * sph_angle.norm()
+        sph_cos_angle = sph_dot_product / sph_norm_product
+        return math.degrees(math.acos(sph_cos_angle))
+
+    def sphericaltriangleangles(self, a2, a3):
+        """
+            Args:
+                self=a1, a2 and a3
+    
+            Returns:
+                Angles of the triangles in spherical-polar form in degrees.
+        """
+        sph_side1 = (a2 - self).cartesian_to_spherical()
+        sph_side2 = (a3 - self).cartesian_to_spherical()
+        sph_side3 = (a3 - a2).cartesian_to_spherical()
+
+        sph_angle1 = sph_side1.sphericalangleproduct(sph_side2)
+        sph_angle2 = sph_side2.sphericalangleproduct(sph_side3)
+        sph_angle3 = sph_side3.sphericalangleproduct(sph_side1)
+
+        return sph_angle1, sph_angle2, sph_angle3
 
     def sphericaltrianglearea(self, a2, a3):
         """
@@ -202,6 +192,16 @@ class SphericalPolarVector(Vector):
         
         denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
         return 2*np.arctan(numerator / denom)
+
+    def __str__(self):
+        """
+            String representation of the vector in spherical-polar form.
+        """
+        return (
+            f"(r={self._r:.2f}, "
+            f"θ={math.degrees(self._theta):.2f}°, "
+            f"φ={math.degrees(self._phi):.2f}°)"
+    )
 
 #v1 = Vector(1, 0, 0)  # i=1, j=0, k=0
 #v2 = Vector(0, 1, 0)  # i=0, j=1, k=0
