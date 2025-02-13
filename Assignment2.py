@@ -155,24 +155,6 @@ class Vector:
 
         return sph_angle1, sph_angle2, sph_angle3
 
-    def sphericaltrianglearea(self, a2, a3):
-        """
-            Area of a triangle
-            Args:
-                self=a1, a2, a3
-            Returns:
-                Area.
-        """
-        math.degrees(self)
-        math.degrees(a2)
-        math.degrees(a3)
-        cross = a2.cross(a3)
-        product = self.dot(cross)
-        numerator = abs(product)
-        
-        denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
-        return 2*np.arctan(numerator / denom)
-
 class SphericalPolarVector(Vector):
     """
     Uses inheritance to take previous methods used in parent class to pass to child class.
@@ -206,6 +188,21 @@ class SphericalPolarVector(Vector):
             f"φ={math.degrees(self._phi):.2f}°)"
     )
 
+    def sphericaltrianglearea(self, a2, a3):
+        """
+            Area of a triangle
+            Args:
+                self=a1, a2, a3
+            Returns:
+                Area.
+        """
+        cross = a2.cross(a3)
+        product = self.dot(cross)
+        numerator = abs(product)
+        
+        denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
+        return 2*np.arctan(numerator / denom)
+
 #v1 = Vector(1, 0, 0)  # i=1, j=0, k=0
 #v2 = Vector(0, 1, 0)  # i=0, j=1, k=0
 #v3 = Vector(0, 0, 1)  # i=0, j=0, k=1
@@ -228,21 +225,21 @@ q2 = Vector(1,-1,0)
 q3 = Vector(0,0,1)
 
 # 4 Triangles with Spherical-Polar Points
-a1 = Vector(0, 0, 0)
-a2 = Vector(1, 0, 0)
-a3 = Vector(1, 90, 0)
+a1 = SphericalPolarVector(0, 0, 0)
+a2 = SphericalPolarVector(1, 0, 0)
+a3 = SphericalPolarVector(1, 90, 0)
 
-b1 = Vector(1, 0, 0)
-b2 = Vector(1, 90, 0)
-b3 = Vector(1, 90, 180)
+b1 = SphericalPolarVector(1, 0, 0)
+b2 = SphericalPolarVector(1, 90, 0)
+b3 = SphericalPolarVector(1, 90, 180)
 
-c1 = Vector(0, 0, 0)
-c2 = Vector(2, 0, 0)
-c3 = Vector(2, 90, 0)
+c1 = SphericalPolarVector(0, 0, 0)
+c2 = SphericalPolarVector(2, 0, 0)
+c3 = SphericalPolarVector(2, 90, 0)
 
-d1 = Vector(1, 90, 0)
-d2 = Vector(1, 90, 180)
-d3 = Vector(1, 90, 270)
+d1 = SphericalPolarVector(1, 90, 0)
+d2 = SphericalPolarVector(1, 90, 180)
+d3 = SphericalPolarVector(1, 90, 270)
 
 # Task 3(a)
 print("Spherical-Polar Vector Form")
