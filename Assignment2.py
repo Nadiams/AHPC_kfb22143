@@ -114,6 +114,9 @@ class Vector:
             Returns:
                 Angles of the triangles.
         """
+        self._v1 = v1
+        self._v2 = v2
+        self._v3 = v3
 
 class SphericalPolarVector(Vector):
     """
