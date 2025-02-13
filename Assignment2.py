@@ -94,22 +94,22 @@ class Vector:
         cross_product = side1.cross(side2)
         return 0.5 * cross_product.norm()
     
-    def angleproduct(self, theta):
+    def angleproduct(self, angle):
         """
         Args:
-            theta
+            self=v1, angle
         Returns:
             cos_angle
         """
-        dot_product = self.dot(theta)
-        norm_product = self.norm() * theta.norm()
+        dot_product = self.dot(angle)
+        norm_product = self.norm() * angle.norm()
         cos_angle = dot_product / norm_product
         return math.degrees(math.acos(cos_angle))
     
     def triangleangles(self, v2, v3):
         """
             Args:
-                self, v2 and v3
+                self=v1, v2 and v3
     
             Returns:
                 Angles of the triangles.
@@ -190,6 +190,30 @@ area4 = q1.trianglearea(q2, q3)
 print(f"Area of Triangle 4: {area4:.2f}")
 
 # Task 3(b)
+
+angles1 = vv1.triangleangles(vv2, vv3)
+print(f"Triangle 1: 1st Angle: {angles1[0]:.2f}°, "
+      f"2nd Angle: {angles1[1]:.2f}°,"
+      f"3rd Angle: {angles1[2]:.2f}°"
+      )
+
+angles2 = u1.triangleangles(u2, u3)
+print(f"Triangle 2: 1st Angle: {angles2[0]:.2f}°, "
+      f"2nd Angle: {angles2[1]:.2f}°,"
+      f"3rd Angle: {angles2[2]:.2f}°"
+      )
+
+angles3 = p1.triangleangles(p2, p3)
+print(f"Triangle 3: 1st Angle: {angles3[0]:.2f}°, "
+      f"2nd Angle: {angles3[1]:.2f}°,"
+      f"3rd Angle: {angles3[2]:.2f}°"
+      )
+
+angles4 = q1.triangleangles(q2, q3)
+print(f"Triangle 4: 1st Angle: {angles4[0]:.2f}°, "
+      f"2nd Angle: {angles4[1]:.2f}°,"
+      f"3rd Angle: {angles4[2]:.2f}°"
+      )
 
 # Task 3 (c)
 
