@@ -85,7 +85,8 @@ class Vector:
         """
             Area of a triangle
             Args:
-                v1, v2, v3: Vector objects representing the vertices.
+                self = v1, v2, v3, i.e. Vector objects which represent the
+                vertices.
             Returns:
                 Area.
         """
@@ -124,10 +125,10 @@ class Vector:
 
         return angle1, angle2, angle3
 
-    def sphericalangleproduct(self, sph_angle):
+    def sphericalangleproduct(self, r, sph_angle):
         """
         Args:
-            self=a1, angle
+            self=a1, angle, pi, radius = r component.
         Returns:
             cos_angle
         """
@@ -158,10 +159,12 @@ class Vector:
         """
             Area of a triangle
             Args:
-                self=a1, a2, a3: Vector objects representing the vertices.
+                self=a1, a2, a3
             Returns:
                 Area.
         """
+        cross = a2.cross(a3)
+        denom = 1 + self.dot(cross)
         sph_side1 = a2 - self
         sph_side2 = a3 - self
         sph_cross_product = sph_side1.cross(sph_side2)
