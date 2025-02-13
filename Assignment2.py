@@ -163,6 +163,9 @@ class Vector:
             Returns:
                 Area.
         """
+        math.degrees(self)
+        math.degrees(a2)
+        math.degrees(a3)
         cross = a2.cross(a3)
         product = self.dot(cross)
         numerator = abs(product)
