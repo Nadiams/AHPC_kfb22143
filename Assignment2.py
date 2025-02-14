@@ -138,6 +138,8 @@ class SphericalPolarVector(Vector):
             Returns: 
                 r, theta and phi.
         """
+        theta = math.radians(theta)
+        phi = math.radians(phi)
         self._r = r
         self._theta = math.radians(theta)
         self._phi = math.radians(phi)
@@ -157,7 +159,7 @@ class SphericalPolarVector(Vector):
                 theta and phi in degrees.
         """
         r = self.norm()
-        theta = math.acos(self.k / r) if r != 0 else 0
+        theta = math.acos(np.clip(self._k / r, -1.0, 1.0)) if r != 0 else 0
         phi = math.atan2(self.j, self.i)
 
         return r, math.degrees(theta), math.degrees(phi)
@@ -171,7 +173,7 @@ class SphericalPolarVector(Vector):
         """
         sph_dot_product = self.dot(sph_angle)
         sph_norm_product = self.norm() * sph_angle.norm()
-        sph_cos_angle = sph_dot_product / sph_norm_product
+        sph_cos_angle = np.clip(sph_dot_product / sph_norm_product, -1.0, 1.0)
         return math.degrees(math.acos(sph_cos_angle))
 
     def sphericaltriangleangles(self, a2, a3):
@@ -205,7 +207,7 @@ class SphericalPolarVector(Vector):
         numerator = abs(product)
         
         denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
-        return 2*np.arctan(numerator / denom)
+        return 2 * np.arctan2(numerator, denom)
 
     def __str__(self):
         """
