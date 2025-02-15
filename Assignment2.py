@@ -159,7 +159,7 @@ class SphericalPolarVector(Vector):
                 theta and phi in degrees.
         """
         r = self.norm()
-        theta = math.acos(np.clip(self._k / r, -1.0, 1.0)) if r != 0 else 0
+        theta = math.acos(np.clip(self._k / r, -1.0, 1.0))
         phi = math.atan2(self.j, self.i)
 
         return r, math.degrees(theta), math.degrees(phi)
