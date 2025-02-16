@@ -93,7 +93,7 @@ class Vector:
         side1 = v2 - self
         side2 = v3 - self
         cross_product = side1.cross(side2)
-        return 0.5 * cross_product.norm()
+        return (1/2) * cross_product.norm()
     
     def angleproduct(self, angle):
         """
@@ -152,9 +152,9 @@ class SphericalPolarVector(Vector):
 
     def cart_to_spherical(self):
         """
-            To convert from Cartesian to Spherical-Polar.
+            To convert from Cartesian to Spherical-Polar form.
             Args:
-                (r, theta, phi).
+                r, theta and phi.
             Returns:
                 theta and phi in degrees.
         """
@@ -205,7 +205,10 @@ class SphericalPolarVector(Vector):
         cross = a2.cross(a3)
         product = self.dot(cross)
         numerator = abs(product)
-        
+        v1 = a2 - self
+        v2 = a3 - self
+        cross = v1.cross(v2)
+        numerator = abs(self.dot(cross))
         denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
         return 2 * np.arctan2(numerator, denom)
 
