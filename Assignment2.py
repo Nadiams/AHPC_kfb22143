@@ -137,10 +137,22 @@ class SphericalPolarVector(Vector):
     def __add__(self, other):
         """
             Args: vector components
-            Returns: Cartesian vector
-            Adds vectors.
+            Returns: SphericalPolarVector
+            Adds spherical-polar vectors.
         """
-        return SphericalPolarVector(self._i + other._i, self._j + other._j, self._k + other._k)
+        i = self._i + other._i
+        j = self._j + other._j
+        k = self._k + other._k
+        
+        r = np.sqrt(i**2 + j**2 + k**2)
+        theta = math.acos(k / r) if r != 0 else 0
+        theta = math.degrees(theta)
+        phi = math.atan2(j, i)
+        phi = math.degrees(phi)
+        if phi < 0:
+            phi += 360
+        return SphericalPolarVector(r, theta, phi)
+
     
     def __str__(self):
         """
