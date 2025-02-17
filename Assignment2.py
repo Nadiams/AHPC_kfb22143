@@ -368,9 +368,9 @@ print(f"Spherical-Polar Triangle 4: 1st Angle: {sph_angles4[0]:.2f}°, "
 
 # Task 1 and 2
 
-sphericalpolar_vector1 = vv1.cartesian_to_spherical()
-sphericalpolar_vector2 = vv2.cartesian_to_spherical()
-sphericalpolar_vector3 = vv3.cartesian_to_spherical()
+sphericalpolar_vector1 = SphericalPolarVector(*vv1.cartesian_to_spherical())
+sphericalpolar_vector2 = SphericalPolarVector(*vv2.cartesian_to_spherical())
+sphericalpolar_vector3 = SphericalPolarVector(*vv3.cartesian_to_spherical())
 
 cartesian_sub = vv1 - vv2
 sphericalpolar_sub = cartesian_sub.cartesian_to_spherical()
@@ -379,15 +379,15 @@ cartesian_add = vv1 + vv2
 sphericalpolar_add = cartesian_add.cartesian_to_spherical()
 
 cartesian_mag = vv1.norm()
-# Spherical-Polar Magnitude is the r-component.
-
 cartesian_cross = vv1.cross(vv2)
 sphericalpolar_cross = cartesian_cross.cartesian_to_spherical()
 
 cartesian_dot = vv1.dot(vv2)
-# sphericalpolar_dot = cartesian_dot.cartesian_to_spherical()
-sphericalpolar_dot = sphericalpolar_vector1.dot(sphericalpolar_vector2)
-sphericalpolar_dot = round(sphericalpolar_dot, 10)
+sphericalpolar_dot = sphericalpolar_vector1.sphericalangleproduct(sphericalpolar_vector2)
+
+sphericalpolar_vector1 = SphericalPolarVector(*vv1.cartesian_to_spherical())
+sphericalpolar_vector2 = SphericalPolarVector(*vv2.cartesian_to_spherical())
+
 print()
 print("Cartestian Vector Form")
 print("Cartesian Vector 1:", vv1)
@@ -405,5 +405,5 @@ print(f"Spherical-Polar Subtraction: {sphericalpolar_sub}")
 print(f"Spherical-Polar Addition: {sphericalpolar_add}")
 print(f"Spherical-Polar Dot Product: {sphericalpolar_dot}")
 print(f"Spherical-Polar Cross Product: {sphericalpolar_cross}")
-print(f"Magnitude of sphericalpolar_vector1: {sphericalpolar_vector1._r}")  # It is the r component.
-print(f"Magnitude of sphericalpolar_vector2: {sphericalpolar_vector2._r}")  # It is the r component.
+print(f"Magnitude of sphericalpolar_vector1: {sphericalpolar_vector1._r}")
+print(f"Magnitude of sphericalpolar_vector2: {sphericalpolar_vector2._r}")
