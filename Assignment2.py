@@ -153,7 +153,49 @@ class SphericalPolarVector(Vector):
             phi += 360
         return SphericalPolarVector(r, theta, phi)
 
+    def __sub__(self, other):
+        """
+            Args: vector components
+            Returns: Cartesian vector
+            Subtracts vectors.
+        """
+        i = self._i - other._i
+        j = self._j - other._j
+        k = self._k - other._k
+        
+        r = np.sqrt(i**2 + j**2 + k**2)
+        theta = math.acos(k / r) if r != 0 else 0
+        theta = math.degrees(theta)
+        phi = math.atan2(j, i)
+        phi = math.degrees(phi)
+        if phi < 0:
+            phi += 360
+        return SphericalPolarVector(r, theta, phi)
+
+    def norm(self):
+        """
+            Calculates the magnitude of the vector.
+        """
+        r = np.sqrt(self._i**2 + self._j**2 + self._k**2)
+        return r
+
+    def dot(self, other):
+        """
+            Calculates the dot product of two vectors.
+        """
+        return self._i * other._i + self._j * other._j + self._k * other._k
+
+    def cross(self, other):
+        """
+            Calculates the cross product of two vectors.
+        """
+        return Vector(
+            self._j * other._k - self._k * other._j,
+            self._k * other._i - self._i * other._k,
+            self._i * other._j - self._j * other._i
+        )
     
+
     def __str__(self):
         """
             String representation of the vector in spherical-polar form.
@@ -203,6 +245,10 @@ d2 = SphericalPolarVector(1, 90, 180)
 d3 = SphericalPolarVector(1, 90, 270)
 d3x2 = d3 + d3
 print("addition check", d3x2)
+subd = c3-c1
+print("sub check", subd)
+subb = b3-b2
+print("sub check", subb)
 print("d3", d3)
 print(f"(checking:{d1})")
 
