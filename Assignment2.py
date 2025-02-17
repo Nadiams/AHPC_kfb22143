@@ -130,7 +130,6 @@ class SphericalPolarVector(Vector):
             Returns: 
                 r, theta and phi.
         """
-
         self._i = r * math.sin(math.radians(theta)) * math.cos(math.radians(phi))  # x-component
         self._j = r * math.sin(math.radians(theta)) * math.sin(math.radians(phi))  # y-component
         self._k = r * math.cos(math.radians(theta))  # z-component
@@ -139,13 +138,14 @@ class SphericalPolarVector(Vector):
         """
             String representation of the vector in spherical-polar form.
         """
-        r = np.sqrt(self._i**2+self._j**2+self._k**2)
-        theta =  math.acos((self._k / r))
+        r = np.sqrt(self._i**2 + self._j**2 + self._k**2)
+        theta = math.acos(self._k / r)
         theta = math.degrees(theta)
         phi = math.atan2(self._j, self._i)
         phi = math.degrees(phi)
+        if phi < 0:
+            phi += 360
         return f"(r={r:.2f}, theta={theta:.2f}, phi={phi:.2f})"
-            
 
 # 4 Triangles with Cartesian Points
 vv1 = Vector(0, 0, 0)  # i=1, j=0, k=0
