@@ -72,14 +72,31 @@ class Vector:
             return np.array([self._i, self._j, self._k], dtype=dtype)
         return np.array([self._i, self._j, self._k])
 
+  #  def cartesian_to_spherical(self):
+   #     """
+    #        This is where the conversion occurs.
+     #   """
+      #  r = self.norm()
+       # theta = math.acos(self._k / r) if r != 0 else 0
+        #phi = math.atan2(self._j, self._i)
+        #return SphericalPolarVector(r, theta, phi)
+        
     def cartesian_to_spherical(self):
         """
-            This is where the conversion occurs.
+            Converts Cartesian vector to spherical-polar coordinates.
+            Args:
+                _i, _j and _k.
+            Returns:
+                r, theta and phi in spherical-polar coordinates.
         """
         r = self.norm()
-        theta = math.acos(self._k / r) if r != 0 else 0
+        if r == 0:
+            return 0, 0, 0
+    
+        theta = math.acos(self._k / r)
         phi = math.atan2(self._j, self._i)
-        return SphericalPolarVector(r, theta, phi)
+        return r, math.degrees(theta), math.degrees(phi)
+
     
     def trianglearea(self, v2, v3):
         """
@@ -92,8 +109,8 @@ class Vector:
         """
         side1 = v2 - self
         side2 = v3 - self
-        cross_product = side1.cross(side2)
-        return (1/2) * cross_product.norm()
+        crossproduct = side1.cross(side2)
+        return 0.5 * crossproduct.norm()
     
     def angleproduct(self, angle):
         """
@@ -131,48 +148,66 @@ class SphericalPolarVector(Vector):
     """
     def __init__(self, r, theta, phi):
         """
-            Initialises the vector with r, theta and phi components to convert
-            from cartesian i, j and k components.
+            Initializes the vector with spherical-polar r, theta and phi components
+            to convert from Cartesian i, j and k components.
             Args: 
                 i, j and k
             Returns: 
                 r, theta and phi.
         """
-        theta = math.radians(theta)
-        phi = math.radians(phi)
         self._r = r
         self._theta = math.radians(theta)
         self._phi = math.radians(phi)
+        self._i = r * math.sin(self._theta) * math.cos(self._phi)  # x-component
+        self._j = r * math.sin(self._theta) * math.sin(self._phi)  # y-component
+        self._k = r * math.cos(self._theta)  # z-component
 
-        i = r * math.sin(theta) * math.cos(phi)  # x-component
-        j = r * math.sin(theta) * math.sin(phi)  # y-component
-        k = r * math.cos(theta)  # z-component
-
-        super().__init__(i, j, k)
-
-    def cart_to_spherical(self):
+        super().__init__(self._i, self._j, self._k)
+        
+    def spherical_to_cartesian(self):
         """
-            To convert from Cartesian to Spherical-Polar form.
+            Converts from spherical-polar form to Cartesian form.
+        """
+        return self._i, self._j, self._k
+
+    def cartesian_to_spherical(self):
+        """
+            To convert from Cartesian back to spherical-polar using inheritance.
             Args:
                 r, theta and phi.
             Returns:
                 theta and phi in degrees.
         """
-        r = self.norm()
-        theta = math.acos(np.clip(self._k / r, -1.0, 1.0))
-        phi = math.atan2(self.j, self.i)
+       # r = self.norm()
+       #theta = math.acos(np.clip(self._k / r, -1.0, 1.0))
+       #phi = math.atan2(self.j, self.i)
+        return super().cartesian_to_spherical()
 
-        return r, math.degrees(theta), math.degrees(phi)
+#    def cartesian_to_spherical(self):
+ #       """
+ #       To convert from Cartesian to Spherical-Polar form.
+  #      Args:
+   #         r, theta, and phi.
+    #    Returns:
+     #       theta and phi in degrees.
+      #  """
+       # r = self.norm()
+        #theta = math.acos(np.clip(self._k / r, -1.0, 1.0))
+        #phi = math.atan2(self._j, self._i)
+
+#        return r, math.degrees(theta), math.degrees(phi)
 
     def sphericalangleproduct(self, sph_angle):
         """
-        Args:
-            self=a1, angle, pi, radius = r component.
-        Returns:
-            cos_angle
+            Args:
+                sph_angle (Vector)
+            Returns:
+                cos_angle or 0 if Vector=(0,0,0)
         """
         sph_dot_product = self.dot(sph_angle)
         sph_norm_product = self.norm() * sph_angle.norm()
+        if sph_norm_product == 0:
+            return 0
         sph_cos_angle = np.clip(sph_dot_product / sph_norm_product, -1.0, 1.0)
         return math.degrees(math.acos(sph_cos_angle))
 
@@ -180,13 +215,12 @@ class SphericalPolarVector(Vector):
         """
             Args:
                 self=a1, a2 and a3
-    
             Returns:
                 Angles of the triangles in spherical-polar form in degrees.
         """
-        sph_side1 = (a2 - self).cartesian_to_spherical()
-        sph_side2 = (a3 - self).cartesian_to_spherical()
-        sph_side3 = (a3 - a2).cartesian_to_spherical()
+        sph_side1 = SphericalPolarVector(*((a2 - self).cartesian_to_spherical()))
+        sph_side2 = SphericalPolarVector(*((a3 - self).cartesian_to_spherical()))
+        sph_side3 = SphericalPolarVector(*((a3 - a2).cartesian_to_spherical()))
 
         sph_angle1 = sph_side1.sphericalangleproduct(sph_side2)
         sph_angle2 = sph_side2.sphericalangleproduct(sph_side3)
@@ -196,19 +230,18 @@ class SphericalPolarVector(Vector):
 
     def sphericaltrianglearea(self, a2, a3):
         """
-            Area of a triangle
-            Args:
-                self=a1, a2, a3
-            Returns:
-                Area.
+        Area of a triangle.
+        Args:
+            self=a1, a2, a3
+        Returns:
+            Area=int or Area=0 if vectors are collinear (0,0,0).
         """
-        cross = a2.cross(a3)
-        product = self.dot(cross)
-        numerator = abs(product)
+        if a2.norm() == 0 or a3.norm() == 0:
+            return 0
         v1 = a2 - self
         v2 = a3 - self
-        cross = v1.cross(v2)
-        numerator = abs(self.dot(cross))
+        crossproduct = v1.cross(v2)
+        numerator = abs(self.dot(crossproduct))
         denom = 1 + self.dot(a2) + a2.dot(a3) + self.dot(a3)
         return 2 * np.arctan2(numerator, denom)
 
@@ -220,7 +253,7 @@ class SphericalPolarVector(Vector):
             f"(r={self._r:.2f}, "
             f"θ={math.degrees(self._theta):.2f}°, "
             f"φ={math.degrees(self._phi):.2f}°)"
-    )
+        )
 
 #v1 = Vector(1, 0, 0)  # i=1, j=0, k=0
 #v2 = Vector(0, 1, 0)  # i=0, j=1, k=0
