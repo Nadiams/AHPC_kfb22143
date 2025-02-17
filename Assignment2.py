@@ -187,6 +187,9 @@ class SphericalPolarVector(Vector):
         """
             Converts from spherical-polar form to Cartesian form.
         """
+        r = np.sqrt((self._i)**2+(self._j)**2+(self._k)**2)
+        theta =  math.acos((self._k / r))
+        phi = math.atan2(self.j, self.i)
         return self._i, self._j, self._k
 
     def cartesian_to_spherical(self):
@@ -199,7 +202,7 @@ class SphericalPolarVector(Vector):
         """
        # r = self.norm()
        #theta = math.acos(np.clip(self._k / r, -1.0, 1.0))
-       #phi = math.atan2(self.j, self.i)
+       #phi = math.atan2(self._j, self._i)
         return super().cartesian_to_spherical()
 
 #    def cartesian_to_spherical(self):
