@@ -134,6 +134,14 @@ class SphericalPolarVector(Vector):
         self._j = r * math.sin(math.radians(theta)) * math.sin(math.radians(phi))  # y-component
         self._k = r * math.cos(math.radians(theta))  # z-component
 
+    def __add__(self, other):
+        """
+            Args: vector components
+            Returns: Cartesian vector
+            Adds vectors.
+        """
+        return SphericalPolarVector(self._i + other._i, self._j + other._j, self._k + other._k)
+    
     def __str__(self):
         """
             String representation of the vector in spherical-polar form.
