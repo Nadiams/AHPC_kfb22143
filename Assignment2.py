@@ -48,7 +48,11 @@ class Vector:
             Returns: Cartesian vector
             Subtracts vectors.
         """
-        return Vector(self._i - other._i, self._j - other._j, self._k - other._k)
+        temporary = copy.deepcopy(self)
+        temporary._i -= other._i
+        temporary._j -= other._j
+        temporary._k -= other._k
+        return temporary
 
     def norm(self):
         """
@@ -141,43 +145,6 @@ class SphericalPolarVector(Vector):
         self._j = r * math.sin(math.radians(theta)) * math.sin(math.radians(phi))  # y-component
         self._k = r * math.cos(math.radians(theta))  # z-component
 
-    #def __add__(self, other):
-     #   """
-      #      Args: vector components
-       #     Returns: SphericalPolarVector
-        #    Adds spherical-polar vectors.
-        #"""
-        #i = self._i + other._i
-        #j = self._j + other._j
-        #k = self._k + other._k
-        
-        #r = np.sqrt(i**2 + j**2 + k**2)
-        #theta = math.acos(k / r) if r != 0 else 0
-        #theta = math.degrees(theta)
-        #phi = math.atan2(j, i)
-        #phi = math.degrees(phi)
-        #if phi < 0:
-        #    phi += 360
-        #return SphericalPolarVector(r, theta, phi)
-
-  #  def __sub__(self, other):
-   #     """
-    #        Args: vector components
-     #       Returns: Cartesian vector
-      #      Subtracts vectors.
-       # """
-        #i = self._i - other._i
-        #j = self._j - other._j
-        #k = self._k - other._k
-       # r = np.sqrt(i**2 + j**2 + k**2)
-       # theta = math.acos(k / r) if r != 0 else 0
-       # theta = math.degrees(theta)
-       # phi = math.atan2(j, i)
-       # phi = math.degrees(phi)
-       # if phi < 0:
-        #    phi += 360
-        #return SphericalPolarVector(r, theta, phi)
-
     def __str__(self):
         """
             String representation of the vector in spherical-polar form.
@@ -230,7 +197,7 @@ print("addition check", d3x2)
 subd = c3-c1
 print("sub check", subd)
 subb = b3-b2
-print("sub check", subb)
+print("sub check b", subb)
 print("d3", d3)
 print(f"(checking:{d1})")
 
