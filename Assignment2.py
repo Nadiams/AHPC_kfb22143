@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Licence
-import sys
-print(sys.version)
 """
 Created on Mon Feb 10 14:01:27 2025
 
@@ -192,30 +190,41 @@ c3 = SphericalPolarVector(2, 90, 0)
 d1 = SphericalPolarVector(1, 90, 0)
 d2 = SphericalPolarVector(1, 90, 180)
 d3 = SphericalPolarVector(1, 90, 270)
-add_sph = d3 + d3
-print("addition check", add_sph)
-sub_sph = c3-c1
-print("sub check", sub_sph)
-print(f"(Spherical-Polar Vector = :{d3})")
+
+print("Task 1: Cartestian Vector Form")
+print("Vector 1:", vv1)
+print("Vector 2:", vv2)
+print(f"Subtraction: {vv1 - vv2}")
+print(f"Addition: {vv1 + vv2}")
+print(f"Magnitude of Vector 1: {vv1.norm()}")
+print(f"Dot Product: {vv1.dot(vv2)}")
+print(f"Cross Product: {vv1.cross(vv2)}")
+print()
+
+# Task 2
+
+print("Task 2: Spherical-Polar Vector Form")
+print("Spherical-Polar Vector 1:", b3)
+print("Spherical-Polar Vector 2:", d3)
+print(f"Subtraction: {d3 - b3}")
+print(f"Addition: {d3 + b3}")
+print(f"Magnitude of Spherical-Polar Vector 2: {d3.norm()}")
+print(f"Dot Product: {d3.dot(b3)}")
+print(f"Cross Product: {b3.cross(d3)}")
 print()
 
 # Task 3(a)
-print("Cartesian Vector Form")
+
+print("Task 3(a): Cartesian Vector Form")
 print(f"Area of Triangle 1: {vv1.trianglearea(vv2, vv3):.2f}")
 print(f"Area of Triangle 2: {u1.trianglearea(u2, u3):.2f}")
 print(f"Area of Triangle 3: {p1.trianglearea(p2, p3):.2f}")
 print(f"Area of Triangle 4: {q1.trianglearea(q2, q3):.2f}")
 print()
-print("Spherical-Polar Vector Form")
-
-print(f"Area of Triangle 1: {a1.trianglearea(a2, a3):.2f}")
-print(f"Area of Triangle 2: {b1.trianglearea(b2, b3):.2f}")
-print(f"Area of Triangle 3: {c1.trianglearea(c2, c3):.2f}")
-print(f"Area of Triangle 4: {d1.trianglearea(d2, d3):.2f}")
-print()
 
 # Task 3(b)
-print("Cartestian Vector Form")
+
+print("Task 3(b): Cartestian Vector Form")
 angles1 = vv1.triangleangles(vv2, vv3)
 print(f"Cartesian Triangle 1: 1st Angle: {angles1[0]:.2f}°, "
       f"2nd Angle: {angles1[1]:.2f}°,"
@@ -240,8 +249,16 @@ print(f"Cartesian Triangle 4: 1st Angle: {angles4[0]:.2f}°, "
       f"3rd Angle: {angles4[2]:.2f}°"
       )
 print()
+
 # Task 3 (c)
-print("Spherical-Polar Vector Form")
+
+print("Task 3(c): Spherical-Polar Vector Form")
+print()
+print(f"Area of Triangle 1: {a1.trianglearea(a2, a3):.2f}")
+print(f"Area of Triangle 2: {b1.trianglearea(b2, b3):.2f}")
+print(f"Area of Triangle 3: {c1.trianglearea(c2, c3):.2f}")
+print(f"Area of Triangle 4: {d1.trianglearea(d2, d3):.2f}")
+print()
 angles4 = a1.triangleangles(a2, a3)
 print(f"Spherical-Polar Triangle 1: 1st Angle: {angles1[0]:.2f}°, "
       f"2nd Angle: {angles1[1]:.2f}°,"
@@ -265,23 +282,3 @@ print(f"Spherical-Polar Triangle 4: 1st Angle: {angles4[0]:.2f}°, "
       f"2nd Angle: {angles4[1]:.2f}°,"
       f"3rd Angle: {angles4[2]:.2f}°"
       )
-print()
-
-print()
-print("Task 1: Cartestian Vector Form")
-print("Vector 1:", vv1)
-print("Vector 2:", vv2)
-print(f"Subtraction: {vv1 - vv2}")
-print(f"Addition Vector 1 + Vector 2: {vv1 + vv2}")
-print(f"Magnitude of v1: {vv1.norm()}")
-print(f"Dot Product: {vv1.dot(vv2)}")
-print(f"Cross Product: {vv1.cross(vv2)}")
-print()
-print("Task 2: Spherical-Polar Vector Form")
-print("Spherical-Polar Vector 1:", b3)
-print("Spherical-Polar Vector 2:", d3)
-print(f"Subtraction (Spherical-Polar Vector 2 - Spherical-Polar Vector 1): {d3 - b3}")
-print(f"Addition (Spherical-Polar Vector 1 + Spherical-Polar Vector 2): {d3 + b3}")
-print(f"Magnitude of Spherical-Polar Vector 2: {d3.norm()}")
-print(f"Dot Product: {d3.dot(b3)}")
-print(f"Cross Product: {b3.cross(d3)}")
