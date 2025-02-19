@@ -64,7 +64,8 @@ class Vector:
         """
             Calculates the dot product of two vectors.
         """
-        return self._i * other._i + self._j * other._j + self._k * other._k
+        dotproduct = self._i * other._i + self._j * other._j + self._k * other._k
+        return 0.0 if abs(dotproduct) < 1e-10 else dotproduct
 
     def cross(self, other):
         """
@@ -159,7 +160,7 @@ class SphericalPolarVector(Vector):
         return f"(r={r:.2f}, theta={theta:.2f}, phi={phi:.2f})"
 
 # 4 Triangles with Cartesian Points
-vv1 = Vector(0, 0, 0)  # i=1, j=0, k=0
+vv1 = Vector(0, 0, 0)  # i=0, j=0, k=0
 vv2 = Vector(0, 1, 0)  # i=0, j=1, k=0
 vv3 = Vector(0, 0, 1)  # i=0, j=0, k=1
 
@@ -174,7 +175,6 @@ p3 = Vector(0, 0, 0)
 q1 = Vector(0,0,0)
 q2 = Vector(1,-1,0)
 q3 = Vector(0,0,1)
-print("q1", q1)
 
 # 4 Triangles with Spherical-Polar Points
 a1 = SphericalPolarVector(0, 0, 0)
@@ -192,18 +192,27 @@ c3 = SphericalPolarVector(2, 90, 0)
 d1 = SphericalPolarVector(1, 90, 0)
 d2 = SphericalPolarVector(1, 90, 180)
 d3 = SphericalPolarVector(1, 90, 270)
-d3x2 = d3 + d3
-print("addition check", d3x2)
-subd = c3-c1
-print("sub check", subd)
-subb = b3-b2
-print("sub check b", subb)
-print("d3", d3)
-print(f"(checking:{d1})")
+add_sph = d3 + d3
+print("addition check", add_sph)
+sub_sph = c3-c1
+print("sub check", sub_sph)
+print(f"(Spherical-Polar Vector = :{d3})")
+print()
 
 # Task 3(a)
+print("Cartesian Vector Form")
+print(f"Area of Triangle 1: {vv1.trianglearea(vv2, vv3):.2f}")
+print(f"Area of Triangle 2: {u1.trianglearea(u2, u3):.2f}")
+print(f"Area of Triangle 3: {p1.trianglearea(p2, p3):.2f}")
+print(f"Area of Triangle 4: {q1.trianglearea(q2, q3):.2f}")
+print()
+print("Spherical-Polar Vector Form")
 
-
+print(f"Area of Triangle 1: {a1.trianglearea(a2, a3):.2f}")
+print(f"Area of Triangle 2: {b1.trianglearea(b2, b3):.2f}")
+print(f"Area of Triangle 3: {c1.trianglearea(c2, c3):.2f}")
+print(f"Area of Triangle 4: {d1.trianglearea(d2, d3):.2f}")
+print()
 
 # Task 3(b)
 print("Cartestian Vector Form")
@@ -233,29 +242,46 @@ print(f"Cartesian Triangle 4: 1st Angle: {angles4[0]:.2f}°, "
 print()
 # Task 3 (c)
 print("Spherical-Polar Vector Form")
+angles4 = a1.triangleangles(a2, a3)
+print(f"Spherical-Polar Triangle 1: 1st Angle: {angles1[0]:.2f}°, "
+      f"2nd Angle: {angles1[1]:.2f}°,"
+      f"3rd Angle: {angles1[2]:.2f}°"
+      )
 
-cartesian_sub = vv1 - vv2
+angles5 = b1.triangleangles(b2, b3)
+print(f"Spherical-Polar Triangle 2: 1st Angle: {angles2[0]:.2f}°, "
+      f"2nd Angle: {angles2[1]:.2f}°,"
+      f"3rd Angle: {angles2[2]:.2f}°"
+      )
 
-cartesian_add = vv1 + vv2
+angles6 = c1.triangleangles(c2, c3)
+print(f"Spherical-Polar Triangle 3: 1st Angle: {angles3[0]:.2f}°, "
+      f"2nd Angle: {angles3[1]:.2f}°,"
+      f"3rd Angle: {angles3[2]:.2f}°"
+      )
 
-cartesian_mag = vv1.norm()
-cartesian_cross = vv1.cross(vv2)
-
-cartesian_dot = vv1.dot(vv2)
+angles7 = d1.triangleangles(d2, d3)
+print(f"Spherical-Polar Triangle 4: 1st Angle: {angles4[0]:.2f}°, "
+      f"2nd Angle: {angles4[1]:.2f}°,"
+      f"3rd Angle: {angles4[2]:.2f}°"
+      )
+print()
 
 print()
-print("Cartestian Vector Form")
-print("Cartesian Vector 1:", vv1)
-print("Cartesian Vector 2:", vv2)
-print(f"Cartesian Subtraction: {cartesian_sub}")
-print(f"Cartesian Addition: {cartesian_add}")
-print(f"Cartesian Magnitude of v1: {vv1.norm()}")
-print(f"Cartesian Dot Product: {vv1.dot(vv2)}")
-print(f"Cartesian Cross Product: {vv1.cross(vv2)}")
-
+print("Task 1: Cartestian Vector Form")
+print("Vector 1:", vv1)
+print("Vector 2:", vv2)
+print(f"Subtraction: {vv1 - vv2}")
+print(f"Addition Vector 1 + Vector 2: {vv1 + vv2}")
+print(f"Magnitude of v1: {vv1.norm()}")
+print(f"Dot Product: {vv1.dot(vv2)}")
+print(f"Cross Product: {vv1.cross(vv2)}")
 print()
-#g1 = Vector(1, 0, 0)
-#g2 = Vector(1, 0, 1)
-#cross_check = (g1.cross(g2))
-#mag_cross = cross_check.norm()
-#print(f"Cartesian Cross Product: {0.5 * mag_cross}")
+print("Task 2: Spherical-Polar Vector Form")
+print("Spherical-Polar Vector 1:", b3)
+print("Spherical-Polar Vector 2:", d3)
+print(f"Subtraction (Spherical-Polar Vector 2 - Spherical-Polar Vector 1): {d3 - b3}")
+print(f"Addition (Spherical-Polar Vector 1 + Spherical-Polar Vector 2): {d3 + b3}")
+print(f"Magnitude of Spherical-Polar Vector 2: {d3.norm()}")
+print(f"Dot Product: {d3.dot(b3)}")
+print(f"Cross Product: {b3.cross(d3)}")
