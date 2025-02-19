@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Licence
+# This code is based on an OOP example provided by Dr. Benjamin Hourahine in PH510.
+# Modifications made by kfb22143 - Licensed under the MIT License.
+# See LICENSE file for details.
 """
 Created on Mon Feb 10 14:01:27 2025
 
