@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Licence
+import sys
+print(sys.version)
 """
 Created on Mon Feb 10 14:01:27 2025
 
@@ -33,7 +35,7 @@ class Vector:
             Returns: Cartesian vector
             Adds vectors.
         """
-        return Vector(self._i + other._i, self._j + other._j, self._k + other._k)
+        return type(self)(self._i + other._i, self._j + other._j, self._k + other._k)
 
     def __sub__(self, other):
         """
@@ -134,24 +136,24 @@ class SphericalPolarVector(Vector):
         self._j = r * math.sin(math.radians(theta)) * math.sin(math.radians(phi))  # y-component
         self._k = r * math.cos(math.radians(theta))  # z-component
 
-    def __add__(self, other):
-        """
-            Args: vector components
-            Returns: SphericalPolarVector
-            Adds spherical-polar vectors.
-        """
-        i = self._i + other._i
-        j = self._j + other._j
-        k = self._k + other._k
+    #def __add__(self, other):
+     #   """
+      #      Args: vector components
+       #     Returns: SphericalPolarVector
+        #    Adds spherical-polar vectors.
+        #"""
+        #i = self._i + other._i
+        #j = self._j + other._j
+        #k = self._k + other._k
         
-        r = np.sqrt(i**2 + j**2 + k**2)
-        theta = math.acos(k / r) if r != 0 else 0
-        theta = math.degrees(theta)
-        phi = math.atan2(j, i)
-        phi = math.degrees(phi)
-        if phi < 0:
-            phi += 360
-        return SphericalPolarVector(r, theta, phi)
+        #r = np.sqrt(i**2 + j**2 + k**2)
+        #theta = math.acos(k / r) if r != 0 else 0
+        #theta = math.degrees(theta)
+        #phi = math.atan2(j, i)
+        #phi = math.degrees(phi)
+        #if phi < 0:
+        #    phi += 360
+        #return SphericalPolarVector(r, theta, phi)
 
     def __sub__(self, other):
         """
