@@ -8,9 +8,9 @@ Created on Mon Feb 10 14:01:27 2025
 
 @author: nadia
 """
+import copy
 import math
 import numpy as np
-import copy
 
 class Vector:
     """
@@ -24,6 +24,24 @@ class Vector:
         self._j = j
         self._k = k
 
+    def get_i(self):
+        """
+        Getter for retrieving the data.
+        """
+        return self._i
+
+    def get_j(self):
+        """
+        Getter for retrieving the data.
+        """
+        return self._j
+
+    def get_k(self):
+        """
+        Getter for retrieving the data.
+        """
+        return self._k
+
     def __str__(self):
         """
             String representation of Cartesian vector.
@@ -36,7 +54,7 @@ class Vector:
             Returns: Cartesian vector
             Adds vectors.
         """
-        temporary = copy.deepcopy(self) 
+        temporary = copy.deepcopy(self)
         temporary._i += other._i
         temporary._j += other._j
         temporary._k += other._k
@@ -58,13 +76,16 @@ class Vector:
         """
             Calculates the magnitude of the vector.
         """
-        return math.sqrt(self._i**2 + self._j**2 + self._k**2)
+        return math.sqrt(self.get_i()**2 + self.get_j()**2 + self.get_k()**2)
 
     def dot(self, other):
         """
             Calculates the dot product of two vectors.
         """
-        dotproduct = self._i * other._i + self._j * other._j + self._k * other._k
+        dotproduct = (
+			self.get_i() * other.get_i() + self._j * other.get_j()
+			+ self.get_k() * other.get_k()
+		)
         return 0.0 if abs(dotproduct) < 1e-10 else dotproduct
 
     def cross(self, other):
@@ -72,9 +93,9 @@ class Vector:
             Calculates the cross product of two vectors.
         """
         return Vector(
-            self._j * other._k - self._k * other._j,
-            self._k * other._i - self._i * other._k,
-            self._i * other._j - self._j * other._i
+            self.get_j() * other.get_k() - self.get_k() * other.get_j(),
+            self.get_k() * other.get_i() - self.get_i() * other.get_k(),
+            self.get_i() * other.get_j() - self.get_j() * other.get_i()
         )
 
     def __array__(self, dtype=None):
@@ -82,8 +103,8 @@ class Vector:
             Creates an array to contain the vector components, to display.
         """
         if dtype:
-            return np.array([self._i, self._j, self._k], dtype=dtype)
-        return np.array([self._i, self._j, self._k])
+            return np.array([self.get_i(), self.get_j(), self.get_k()], dtype=dtype)
+        return np.array([self.get_i(), self.get_j(), self.get_k()])
 
     def trianglearea(self, v2, v3):
         """
@@ -98,7 +119,7 @@ class Vector:
         side2 = v3 - self
         crossproduct = side1.cross(side2)
         return 0.5 * crossproduct.norm()
-    
+
     def angleproduct(self, angle):
         """
         Args:
@@ -110,7 +131,7 @@ class Vector:
         norm_product = self.norm() * angle.norm()
         cos_angle = dot_product / norm_product
         return math.degrees(math.acos(cos_angle))
-    
+
     def triangleangles(self, v2, v3):
         """
             Args:
@@ -145,15 +166,15 @@ class SphericalPolarVector(Vector):
         self._i = r * math.sin(math.radians(theta)) * math.cos(math.radians(phi))  # x-component
         self._j = r * math.sin(math.radians(theta)) * math.sin(math.radians(phi))  # y-component
         self._k = r * math.cos(math.radians(theta))  # z-component
-
+        super().__init__(self._i, self._j, self._k)
     def __str__(self):
         """
             String representation of the vector in spherical-polar form.
         """
-        r = np.sqrt(self._i**2 + self._j**2 + self._k**2)
-        theta = math.acos(self._k / r)
+        r = np.sqrt(self.get_i()**2 + self.get_j()**2 + self.get_k()**2)
+        theta = math.acos(self.get_k() / r)
         theta = math.degrees(theta)
-        phi = math.atan2(self._j, self._i)
+        phi = math.atan2(self.get_j(), self.get_i())
         phi = math.degrees(phi)
         if phi < 0:
             phi += 360
