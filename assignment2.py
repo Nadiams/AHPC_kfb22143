@@ -27,18 +27,30 @@ class Vector:
     def get_i(self):
         """
         Getter for retrieving the data.
+        Args:
+            None. Though reads from instances.
+        Returns:
+            self._i
         """
         return self._i
 
     def get_j(self):
         """
         Getter for retrieving the data.
+        Args:
+            None. Though reads from instances.
+        Returns:
+            self._j
         """
         return self._j
 
     def get_k(self):
         """
         Getter for retrieving the data.
+        Args:
+            None. Though reads from instances.
+        Returns:
+            self._k
         """
         return self._k
 
