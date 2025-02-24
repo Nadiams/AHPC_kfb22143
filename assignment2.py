@@ -19,6 +19,12 @@ class Vector:
     def __init__(self, i, j, k):
         """
             Initializes vector with i, j and k components.
+            Args:
+                i: The x-component of the vector.
+                j: The y-component of the vector.
+                k: The z-component of the vector.
+            Returns:
+                initialises components.
         """
         self._i = i
         self._j = j
@@ -28,9 +34,9 @@ class Vector:
         """
         Getter for retrieving the data.
         Args:
-            None. Though reads from instances.
+            None.
         Returns:
-            self._i
+            The x-component of the vector (i).
         """
         return self._i
 
@@ -38,9 +44,9 @@ class Vector:
         """
         Getter for retrieving the data.
         Args:
-            None. Though reads from instances.
+            None.
         Returns:
-            self._j
+           The y-component of the vector (j).
         """
         return self._j
 
@@ -48,22 +54,25 @@ class Vector:
         """
         Getter for retrieving the data.
         Args:
-            None. Though reads from instances.
+            None.
         Returns:
-            self._k
+            The z-component of the vector (k).
         """
         return self._k
 
     def __str__(self):
         """
-            String representation of Cartesian vector.
+            Returns a string representation of the vector.
+            Returns:
+                str: The vector in (i, j, k) format.
         """
         return f"({self._i:.2f}, {self._j:.2f}, {self._k:.2f})"
 
     def __add__(self, other):
         """
-            Args: vector components
-            Returns: Cartesian vector
+            Adds compoents of a vector together.
+            Args: vector components.
+            Returns: sum of Cartesian vectors as a new vector.
             Adds vectors.
         """
         temporary = copy.deepcopy(self)
@@ -74,9 +83,9 @@ class Vector:
 
     def __sub__(self, other):
         """
-            Args: vector components
-            Returns: Cartesian vector
-            Subtracts vectors.
+        Subtracts comonents of one vector from the other.
+            Args: vector components.
+            Returns: New cartesian vector.
         """
         temporary = copy.deepcopy(self)
         temporary._i -= other._i
@@ -112,7 +121,8 @@ class Vector:
 
     def __array__(self, dtype=None):
         """
-            Creates an array to contain the vector components, to display.
+            Creates an array to contain the vector components, to display
+            by converting the vector into a NumPy array.
         """
         if dtype:
             return np.array([self.get_i(), self.get_j(), self.get_k()], dtype=dtype)
@@ -120,12 +130,12 @@ class Vector:
 
     def trianglearea(self, v2, v3):
         """
-            Area of a triangle
+            Calculates the area of a triangle from three vertices (vectors).
             Args:
-                self = v1, v2, v3, i.e. Vector objects which represent the
-                vertices.
+                self (v1), v2, v3
+                i.e. Vector objects which represent the vertices.
             Returns:
-                Area.
+                Area of the triangle.
         """
         side1 = v2 - self
         side2 = v3 - self
@@ -134,10 +144,11 @@ class Vector:
 
     def angleproduct(self, angle):
         """
-        Args:
-            self=v1, angle
-        Returns:
-            cos_angle
+            Calculates the angle (degrees) between two vectors using the dot product.
+            Args:
+                self (v1), angle
+            Returns:
+                The angle in degrees.
         """
         dot_product = self.dot(angle)
         norm_product = self.norm() * angle.norm()
@@ -146,11 +157,13 @@ class Vector:
 
     def triangleangles(self, v2, v3):
         """
+            Calculates the angle (degrees) of the triangles 
+            across three vertices (vectors).
             Args:
-                self=v1, v2 and v3
-    
+                v2 (Vector): Second vertex of the triangle.
+                v3 (Vector): Third vertex of the triangle.
             Returns:
-                Angles of the triangles.
+                The three angles of the triangle in degrees.
         """
         side1 = v2 - self
         side2 = v3 - self
@@ -165,15 +178,17 @@ class Vector:
 class SphericalPolarVector(Vector):
     """
     Uses inheritance to take previous methods used in parent class to pass to child class.
+    A class which represents a vector in spherical polar coordinates.
     """
     def __init__(self, r, theta, phi):
         """
-            Initializes the vector with spherical-polar r, theta and phi components
-            to convert from Cartesian i, j and k components.
-            Args: 
-                i, j and k
-            Returns: 
-                r, theta and phi.
+            Initializes the vector with spherical-polar coordinates:
+            r, theta and phi components to convert to Cartesian i, j and k 
+            components.
+            Args:
+                r: Radius.
+                theta: Polar angle in degrees.
+                phi: Azimuthal angle in degrees.
         """
         self._i = r * math.sin(math.radians(theta)) * math.cos(math.radians(phi))  # x-component
         self._j = r * math.sin(math.radians(theta)) * math.sin(math.radians(phi))  # y-component
@@ -181,7 +196,10 @@ class SphericalPolarVector(Vector):
         super().__init__(self._i, self._j, self._k)
     def __str__(self):
         """
-            String representation of the vector in spherical-polar form.
+            Returns a string representation of the vector in spherical-polar 
+            form.
+            Returns:
+                str: The vector in (r, θ, φ) format.
         """
         r = np.sqrt(self.get_i()**2 + self.get_j()**2 + self.get_k()**2)
         theta = math.acos(self.get_k() / r)
@@ -190,7 +208,7 @@ class SphericalPolarVector(Vector):
         phi = math.degrees(phi)
         if phi < 0:
             phi += 360
-        return f"(r={r:.2f}, θ={theta:.2f}, φ={phi:.2f})"
+        return f"(r={r:.2f}, θ={theta:.2f}°, φ={phi:.2f}°)"
 
 # 4 Triangles with Cartesian Points
 vv1 = Vector(0, 0, 0)  # i=0, j=0, k=0
@@ -239,10 +257,10 @@ print()
 # Task 2
 
 print("Task 2: Spherical-Polar Vector Form")
-print(f"Spherical-Polar Vector 1: {b3}°")
-print(f"Spherical-Polar Vector 2: {d3}°")
-print(f"Subtraction: {d3 - b3}°")
-print(f"Addition: {d3 + b3}°")
+print(f"Spherical-Polar Vector 1: {b3}")
+print(f"Spherical-Polar Vector 2: {d3}")
+print(f"Subtraction: {d3 - b3}")
+print(f"Addition: {d3 + b3}")
 print(f"Magnitude of Spherical-Polar Vector 2: {d3.norm()}")
 print(f"Dot Product: {d3.dot(b3)}")
 print(f"Cross Product: {b3.cross(d3)}")
