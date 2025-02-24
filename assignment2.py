@@ -178,7 +178,7 @@ class SphericalPolarVector(Vector):
         phi = math.degrees(phi)
         if phi < 0:
             phi += 360
-        return f"(r={r:.2f}, theta={theta:.2f}, phi={phi:.2f})"
+        return f"(r={r:.2f}, θ={theta:.2f}, φ={phi:.2f})"
 
 # 4 Triangles with Cartesian Points
 vv1 = Vector(0, 0, 0)  # i=0, j=0, k=0
@@ -227,10 +227,10 @@ print()
 # Task 2
 
 print("Task 2: Spherical-Polar Vector Form")
-print("Spherical-Polar Vector 1:", b3)
-print("Spherical-Polar Vector 2:", d3)
-print(f"Subtraction: {d3 - b3}")
-print(f"Addition: {d3 + b3}")
+print(f"Spherical-Polar Vector 1: {b3}°")
+print(f"Spherical-Polar Vector 2: {d3}°")
+print(f"Subtraction: {d3 - b3}°")
+print(f"Addition: {d3 + b3}°")
 print(f"Magnitude of Spherical-Polar Vector 2: {d3.norm()}")
 print(f"Dot Product: {d3.dot(b3)}")
 print(f"Cross Product: {b3.cross(d3)}")
