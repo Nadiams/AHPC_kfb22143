@@ -14,7 +14,7 @@ import numpy as np
 
 class Vector:
     """
-        Vector class for Cartesian vectors in 3D space.
+        A class representing cartesian vectors in 3D space.
     """
     def __init__(self, i, j, k):
         """
@@ -23,8 +23,6 @@ class Vector:
                 i: The x-component of the vector.
                 j: The y-component of the vector.
                 k: The z-component of the vector.
-            Returns:
-                initialises components.
         """
         self._i = i
         self._j = j
@@ -32,39 +30,25 @@ class Vector:
 
     def get_i(self):
         """
-        Getter for retrieving the data.
-        Args:
-            None.
-        Returns:
-            The x-component of the vector (i).
+        Getter returns the x-component of the vector.
         """
         return self._i
 
     def get_j(self):
         """
-        Getter for retrieving the data.
-        Args:
-            None.
-        Returns:
-           The y-component of the vector (j).
+        Getter returns the y-component of the vector.
         """
         return self._j
 
     def get_k(self):
         """
-        Getter for retrieving the data.
-        Args:
-            None.
-        Returns:
-            The z-component of the vector (k).
+        Getter returns the z-component of the vector.
         """
         return self._k
 
     def __str__(self):
         """
-            Returns a string representation of the vector.
-            Returns:
-                str: The vector in (i, j, k) format.
+            Returns a string representation of the vector in (i, j, k) format.
         """
         return f"({self._i:.2f}, {self._j:.2f}, {self._k:.2f})"
 
@@ -85,7 +69,7 @@ class Vector:
         """
         Subtracts comonents of one vector from the other.
             Args: vector components.
-            Returns: New cartesian vector.
+            Returns: new cartesian vector representing the difference.
         """
         temporary = copy.deepcopy(self)
         temporary._i -= other._i
@@ -95,7 +79,7 @@ class Vector:
 
     def norm(self):
         """
-            Calculates the magnitude of the vector.
+            Returns the calculated magnitude (length) of the vector.
         """
         return math.sqrt(self.get_i()**2 + self.get_j()**2 + self.get_k()**2)
 
@@ -119,15 +103,6 @@ class Vector:
             self.get_i() * other.get_j() - self.get_j() * other.get_i()
         )
 
-    def __array__(self, dtype=None):
-        """
-            Creates an array to contain the vector components, to display
-            by converting the vector into a NumPy array.
-        """
-        if dtype:
-            return np.array([self.get_i(), self.get_j(), self.get_k()], dtype=dtype)
-        return np.array([self.get_i(), self.get_j(), self.get_k()])
-
     def trianglearea(self, v2, v3):
         """
             Calculates the area of a triangle from three vertices (vectors).
@@ -144,7 +119,8 @@ class Vector:
 
     def angleproduct(self, angle):
         """
-            Calculates the angle (degrees) between two vectors using the dot product.
+            Calculates the angle (degrees) between two vectors using the dot
+            product.
             Args:
                 self (v1), angle
             Returns:
@@ -177,8 +153,9 @@ class Vector:
 
 class SphericalPolarVector(Vector):
     """
-    Uses inheritance to take previous methods used in parent class to pass to child class.
-    A class which represents a vector in spherical polar coordinates.
+        A class which represents a vector in spherical polar coordinates.
+        Uses inheritance to take previous methods used in parent class to pass 
+        to child class.
     """
     def __init__(self, r, theta, phi):
         """
