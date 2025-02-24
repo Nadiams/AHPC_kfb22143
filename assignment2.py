@@ -103,7 +103,7 @@ class Vector:
             self.get_i() * other.get_j() - self.get_j() * other.get_i()
         )
 
-    def trianglearea(self, v2, v3):
+    def trianglearea(self, vector_2, vector_3):
         """
             Calculates the area of a triangle from three vertices (vectors).
             Args:
@@ -112,8 +112,8 @@ class Vector:
             Returns:
                 Area of the triangle.
         """
-        side1 = v2 - self
-        side2 = v3 - self
+        side1 = vector_2 - self
+        side2 = vector_3 - self
         crossproduct = side1.cross(side2)
         return 0.5 * crossproduct.norm()
 
@@ -131,9 +131,9 @@ class Vector:
         cos_angle = dot_product / norm_product
         return math.degrees(math.acos(cos_angle))
 
-    def triangleangles(self, v2, v3):
+    def triangleangles(self, vector_2, vector_3):
         """
-            Calculates the angle (degrees) of the triangles 
+            Calculates the angle (degrees) of the triangles
             across three vertices (vectors).
             Args:
                 v2 (Vector): Second vertex of the triangle.
@@ -141,9 +141,9 @@ class Vector:
             Returns:
                 The three angles of the triangle in degrees.
         """
-        side1 = v2 - self
-        side2 = v3 - self
-        side3 = v3 - v2
+        side1 = vector_2 - self
+        side2 = vector_3 - self
+        side3 = vector_3 - vector_2
 
         angle1 = side1.angleproduct(side2)
         angle2 = side2.angleproduct(side3)
@@ -154,38 +154,45 @@ class Vector:
 class SphericalPolarVector(Vector):
     """
         A class which represents a vector in spherical polar coordinates.
-        Uses inheritance to take previous methods used in parent class to pass 
+        Uses inheritance to take previous methods used in parent class to pass
         to child class.
     """
-    def __init__(self, r, theta, phi):
+    def __init__(self, radius, theta, phi):
         """
             Initializes the vector with spherical-polar coordinates:
-            r, theta and phi components to convert to Cartesian i, j and k 
+            r, theta and phi components to convert to Cartesian i, j and k
             components.
             Args:
                 r: Radius.
                 theta: Polar angle in degrees.
                 phi: Azimuthal angle in degrees.
         """
-        self._i = r * math.sin(math.radians(theta)) * math.cos(math.radians(phi))  # x-component
-        self._j = r * math.sin(math.radians(theta)) * math.sin(math.radians(phi))  # y-component
-        self._k = r * math.cos(math.radians(theta))  # z-component
+        self._i = (
+            radius * math.sin(math.radians(theta)) *
+            math.cos(math.radians(phi))
+        )  # x-component
+
+        self._j = (
+            radius * math.sin(math.radians(theta)) *
+            math.sin(math.radians(phi))
+        )  # y-component
+        self._k = radius * math.cos(math.radians(theta))  # z-component
         super().__init__(self._i, self._j, self._k)
     def __str__(self):
         """
-            Returns a string representation of the vector in spherical-polar 
+            Returns a string representation of the vector in spherical-polar
             form.
             Returns:
                 str: The vector in (r, θ, φ) format.
         """
-        r = np.sqrt(self.get_i()**2 + self.get_j()**2 + self.get_k()**2)
-        theta = math.acos(self.get_k() / r)
+        radius = np.sqrt(self.get_i()**2 + self.get_j()**2 + self.get_k()**2)
+        theta = math.acos(self.get_k() / radius)
         theta = math.degrees(theta)
         phi = math.atan2(self.get_j(), self.get_i())
         phi = math.degrees(phi)
         if phi < 0:
             phi += 360
-        return f"(r={r:.2f}, θ={theta:.2f}°, φ={phi:.2f}°)"
+        return f"(r={radius:.2f}, θ={theta:.2f}°, φ={phi:.2f}°)"
 
 # 4 Triangles with Cartesian Points
 vv1 = Vector(0, 0, 0)  # i=0, j=0, k=0
