@@ -46,6 +46,23 @@ plt.ylabel("y-axis")
 plt.title("Random Points in 2D")
 plt.grid()
 
+class MonteCarlo:
+    def __init__(self, num_samples=100000, dimensions=2, seed=12345):
+        """
+        To initialize the Monte Carlo class.
+        """
+        self.num_samples = num_samples
+        self.dimensions = dimensions
+        self.seed = seed
+        self.rng = default_rng(SeedSequence(seed))
+    
+    def sample_points(self):
+        """
+        To generate random points.
+        """
+        return self.rng.uniform(-1, 1, size=(self.dimensions, self.num_samples))
+
+
 
 #if points(x=0):
  #   return points(x=0)
