@@ -29,10 +29,17 @@ print(streams[3].random())
 x = streams[0].uniform(-1, 1, size=N)
 y = streams[1].uniform(-1, 1, size=N)
 z = streams[2].uniform(-1, 1, size=N)
+points = np.array([streams[i].uniform(-1, 1, size=N) for i in range(dimensions)])
 
-inside = twodregion(x, y)
-plt.scatter(x[inside], y[inside], color='blue', label='Inside Circle')
-plt.scatter(x[~inside], y[~inside], color='red', label='Outside Circle')
+def hypersphere(point):
+    return np.sum(point**2, axis=0) < 1
+
+for d in range(2, dimensions + 1):
+    print(f"{d}D Region Test: {hypersphere(points[:d, 0])}")
+
+inside = hypersphere(points[:2])
+plt.scatter(points[0][inside], points[1][inside], color='blue', label='Inside Circle')
+plt.scatter(points[0][~inside], points[1][~inside], color='red', label='Outside Circle')
 plt.legend()
 plt.xlabel("x-axis")
 plt.ylabel("y-axis")
