@@ -16,7 +16,7 @@ from numpy.random import SeedSequence, default_rng
 #from mpi4py import MPI
 
 class MonteCarlo:
-    def __init__(self, num_samples=1000000000, dimensions=6, seed=12345):
+    def __init__(self, num_samples=1000000, dimensions=6, seed=12345):
         """
         To initialize the Monte Carlo class.
         """
@@ -48,11 +48,23 @@ class MonteCarlo:
         return volume_fraction * cube_volume
 
 if __name__ == "__main__":
-    mc_2d = MonteCarlo(num_samples=1000000000, dimensions=2)
+   # num_samples = 1000000
+    #dimensions = [2, 3, 4, 5]
+    mc_2d = MonteCarlo(num_samples=1000000, dimensions=2)
     print(f"Estimated volume for 2D (circle): {mc_2d.estimate_volume()}")
 
-    mc_3d = MonteCarlo(num_samples=1000000000, dimensions=3)
+    mc_3d = MonteCarlo(num_samples=1000000, dimensions=3)
     print(f"Estimated volume for 3D (sphere): {mc_3d.estimate_volume()}")
+    
+    mc_4d = MonteCarlo(num_samples=1000000, dimensions=4)
+    print(f"Estimated volume for 4D (sphere): {mc_3d.estimate_volume()}")
+    
+    mc_5d = MonteCarlo(num_samples=1000000, dimensions=5)
+    print(f"Estimated volume for 5D (sphere): {mc_3d.estimate_volume()}")
+    
+    mc_6d = MonteCarlo(num_samples=1000000, dimensions=6)
+    print(f"Estimated volume for 6D (sphere): {mc_3d.estimate_volume()}")
+    
 
 print(__name__)
 
