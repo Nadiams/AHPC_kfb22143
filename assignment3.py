@@ -19,14 +19,30 @@ N = 1000
 x = np.random.uniform(-1, 1.5, size=N)
 y = np.random.uniform(-1, 1.5, size=N)
 
+from numpy.random import SeedSequence, default_rng
+
+ss = SeedSequence(12345)
+
+# Spawn off 10 child SeedSequences to pass to child processes.
+child_seeds = ss.spawn(10)
+streams = [default_rng(s) for s in child_seeds]
+print(type(streams))
+print(streams[2].random())
+print(streams[3].random())
+
+def twodregion(x,y):
+    r2 = x**2 + y**2
+    return 1 if r2<1 else 0
+
+print(twodregion(0,1))
+
 
 plt.scatter(x, y, color='blue', label='Random Points')
 plt.legend()
 plt.xlabel("x-axis")
 plt.ylabel("y-axis")
 plt.title("Points")
-
-plt.show()
+plt.grid()
 
 
 #if points(x=0):
