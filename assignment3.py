@@ -30,32 +30,6 @@ x = streams[0].uniform(-1, 1, size=N)
 y = streams[1].uniform(-1, 1, size=N)
 z = streams[2].uniform(-1, 1, size=N)
 
-def twodregion(x,y):
-    r2 = x**2 + y**2
-    return x**2 + y**2 < 1
-
-def threedregion(x,y,z):
-    r2 = x**2 + y**2 + z**2
-    return x**2 + y**2 + z**2 < 1
-
-def fourdregion(w,x,y,z):
-    r2 = w**2 + x**2 + y**2 + z**2
-    return w**2 + x**2 + y**2 + z**2 < 1
-
-def fivedregion(v,w,x,y,z):
-    r2 = v**2 + w**2 + x**2 + y**2 + z**2
-    return v**2 + w**2 + x**2 + y**2 + z**2 < 1
-
-def sixdregion(u,v,w,x,y,z):
-    r2 = u**2 + v**2 + w**2 + x**2 + y**2 + z**2
-    return u**2 + v**2 + w**2 + x**2 + y**2 + z**2 < 1
-
-print(twodregion(0,1))
-print(threedregion(0,1,1))
-print(fourdregion(0,1,1,1))
-print(fivedregion(0,1,1,1,1))
-print(sixdregion(0,1,1,1,1,1))
-
 inside = twodregion(x, y)
 plt.scatter(x[inside], y[inside], color='blue', label='Inside Circle')
 plt.scatter(x[~inside], y[~inside], color='red', label='Outside Circle')
