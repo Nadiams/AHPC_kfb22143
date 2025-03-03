@@ -16,31 +16,53 @@ from numpy.random import SeedSequence, default_rng
 #from mpi4py import MPI
 
 N = 1000
-
-x = np.random.uniform(-1, 1.5, size=N)
-y = np.random.uniform(-1, 1.5, size=N)
-
 ss = SeedSequence(12345)
+dimensions = 6
 
 # Spawn off 10 child SeedSequences to pass to child processes.
-child_seeds = ss.spawn(10)
+child_seeds = ss.spawn(dimensions)
 streams = [default_rng(s) for s in child_seeds]
 print(type(streams))
 print(streams[2].random())
 print(streams[3].random())
 
+x = streams[0].uniform(-1, 1, size=N)
+y = streams[1].uniform(-1, 1, size=N)
+z = streams[2].uniform(-1, 1, size=N)
+
 def twodregion(x,y):
     r2 = x**2 + y**2
-    return 1 if r2<1 else 0
+    return x**2 + y**2 < 1
+
+def threedregion(x,y,z):
+    r2 = x**2 + y**2 + z**2
+    return x**2 + y**2 + z**2 < 1
+
+def fourdregion(w,x,y,z):
+    r2 = w**2 + x**2 + y**2 + z**2
+    return w**2 + x**2 + y**2 + z**2 < 1
+
+def fivedregion(v,w,x,y,z):
+    r2 = v**2 + w**2 + x**2 + y**2 + z**2
+    return v**2 + w**2 + x**2 + y**2 + z**2 < 1
+
+def sixdregion(u,v,w,x,y,z):
+    r2 = u**2 + v**2 + w**2 + x**2 + y**2 + z**2
+    return u**2 + v**2 + w**2 + x**2 + y**2 + z**2 < 1
 
 print(twodregion(0,1))
+print(threedregion(0,1,1))
+print(fourdregion(0,1,1,1))
+print(fivedregion(0,1,1,1,1))
+print(sixdregion(0,1,1,1,1,1))
 
-
-plt.scatter(x, y, color='blue', label='Random Points')
+inside = twodregion(x, y)
+plt.scatter(x[inside], y[inside], color='blue', label='Inside Circle')
+plt.scatter(x[~inside], y[~inside], color='red', label='Outside Circle')
 plt.legend()
 plt.xlabel("x-axis")
 plt.ylabel("y-axis")
-plt.title("Points")
+plt.title("Random Points in 2D")
 plt.grid()
 
 
