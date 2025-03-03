@@ -54,14 +54,3 @@ if __name__ == "__main__":
         mc_simulator = MonteCarlo(num_samples, d)
         volume_estimate = mc_simulator.estimate_volume()
         print(f"Estimated volume for {d}D hypersphere: {volume_estimate:.6f}")
-
-print(__name__)
-
-#if points(x=0):
- #   return points(x=0)
-#if points(x=1):
-#    return points(x=0)
-#return plt.plot(x,y)
-    
-
-
