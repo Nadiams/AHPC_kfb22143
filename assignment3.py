@@ -12,14 +12,13 @@ Created on Mon Mar  3 15:07:49 2025
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+from numpy.random import SeedSequence, default_rng
 #from mpi4py import MPI
 
 N = 1000
 
 x = np.random.uniform(-1, 1.5, size=N)
 y = np.random.uniform(-1, 1.5, size=N)
-
-from numpy.random import SeedSequence, default_rng
 
 ss = SeedSequence(12345)
 
