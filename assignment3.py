@@ -81,7 +81,7 @@ class MonteCarlo:
         ax.legend()
 
 if __name__ == "__main__":
-    num_samples = 10000
+    num_samples = 100000
     dimensions_list = [2, 3, 4, 5, 6]
     mc_results = []
 
@@ -94,3 +94,17 @@ if __name__ == "__main__":
             mc_simulator.twodimensionscatter()
         elif d == 3:
             mc_simulator.threedimensionscatter()
+
+class GaussianIntegrator:
+    def __init__(self, num_samples=10000000, dimensions=1, sigma=1.0, x0=0.0):
+        self.num_samples = num_samples
+        self.dimensions = dimensions
+        self.sigma = sigma
+        self.x0 = x0
+
+    def gaussian(self, x):
+        """
+        Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi)) * exp(-(x - x0)^2 / (2 * sigma^2))
+        """
+        return (1 / (self.sigma * np.sqrt(2 * np.pi))) * np.exp(-((x - self.x0) ** 2) / (2 * self.sigma ** 2))
+
