@@ -48,8 +48,8 @@ class MonteCarlo:
         return volume_fraction * cube_volume
 
 if __name__ == "__main__":
-   # num_samples = 1000000
-    #dimensions = [2, 3, 4, 5]
+    num_samples = 1000000
+    dimensions = [2, 3, 4, 5, 6]
     mc_2d = MonteCarlo(num_samples=1000000, dimensions=2)
     print(f"Estimated volume for 2D (circle): {mc_2d.estimate_volume()}")
 
@@ -64,7 +64,10 @@ if __name__ == "__main__":
     
     mc_6d = MonteCarlo(num_samples=1000000, dimensions=6)
     print(f"Estimated volume for 6D (sphere): {mc_3d.estimate_volume()}")
-    
+    for d in dimensions:
+        mc_simulator = MonteCarlo(num_samples, d)
+        volume_estimate = mc_simulator.estimate_volume()
+        print(f"Estimated volume for {d}D hypersphere: {volume_estimate:.6f}")
 
 print(__name__)
 
