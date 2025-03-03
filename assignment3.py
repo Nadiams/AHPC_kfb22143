@@ -50,20 +50,6 @@ class MonteCarlo:
 if __name__ == "__main__":
     num_samples = 1000000
     dimensions = [2, 3, 4, 5, 6]
-    mc_2d = MonteCarlo(num_samples=1000000, dimensions=2)
-    print(f"Estimated volume for 2D (circle): {mc_2d.estimate_volume()}")
-
-    mc_3d = MonteCarlo(num_samples=1000000, dimensions=3)
-    print(f"Estimated volume for 3D (sphere): {mc_3d.estimate_volume()}")
-    
-    mc_4d = MonteCarlo(num_samples=1000000, dimensions=4)
-    print(f"Estimated volume for 4D (sphere): {mc_3d.estimate_volume()}")
-    
-    mc_5d = MonteCarlo(num_samples=1000000, dimensions=5)
-    print(f"Estimated volume for 5D (sphere): {mc_3d.estimate_volume()}")
-    
-    mc_6d = MonteCarlo(num_samples=1000000, dimensions=6)
-    print(f"Estimated volume for 6D (sphere): {mc_3d.estimate_volume()}")
     for d in dimensions:
         mc_simulator = MonteCarlo(num_samples, d)
         volume_estimate = mc_simulator.estimate_volume()
