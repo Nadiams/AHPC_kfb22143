@@ -158,6 +158,19 @@ class GaussianIntegrator(MonteCarloIntegrator):
         return (1 / (self.sigma * np.sqrt(2 * np.pi))) * np.exp(-(
             (x - self.x0) ** 2) / (2 * self.sigma ** 2))
 
+def parallel_monte_carlo(num_samples, dimensions):
+    """
+        Class to use MPI Parallelism.
+    """
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    
+    mc_simulator = MonteCarlo(num_samples=num_samples, dimensions=dimensions)
+    
+    if rank == 0:
+        xxx
+
 if __name__ == "__main__":
     num_samples = 100000
     dimensions_list = [2, 3, 4, 5]
