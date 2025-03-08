@@ -165,7 +165,6 @@ def parallel_monte_carlo(num_samples, dimensions):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
-    
     mc_simulator = MonteCarlo(num_samples=num_samples, dimensions=dimensions)
     
     if rank == 0:
