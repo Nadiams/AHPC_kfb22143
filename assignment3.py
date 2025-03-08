@@ -19,6 +19,11 @@ class MonteCarloIntegrator:
     def __init__(self, function, lower_bounds, upper_bounds, num_samples=100000):
         """
            To initialise the Monte Carlo class.
+            Args:
+                function: The function to integrate.
+                lower_bounds: List of lower bounds for each dimension.
+                upper_bounds: List of upper bounds for each dimension.
+                num_samples: Number of random samples to take.
         """
         self.function = function
         self.lower_bounds = np.array(lower_bounds, dtype=float)
@@ -30,6 +35,8 @@ class MonteCarloIntegrator:
     def integrate(self):
         """
             Performs the Monte Carlo integration to estimate the integral.
+            Returns:
+                The value computed by the integral.
         """
         samples = self.rng.uniform(self.lower_bounds, self.upper_bounds, (self.num_samples, self.dimensions))
         function_values = np.apply_along_axis(self.function, 1, samples)
@@ -41,16 +48,21 @@ class MonteCarloIntegrator:
 
     def transform_variable(self, t):
         """
-        Returns transformed variable and the Jacobian determinant.
+            Computes the integral of f(x) over (-∞, ∞) using the
+            transformation x = t / (1 - t^2).
+            Returns:
+                The transformed variable.
+                The Jacobian determinant.
         """
         x = t / (1 - t**2)
         jacobian = (1 + t**2) / (1 - t**2)**2
         return x, jacobian
 
-class MonteCarlo(MonteCarloIntegrator):
+class ContainedRegion(MonteCarloIntegrator):
     def __init__(self, num_samples=10000, dimensions=5, seed=12345):
         """
-        Estimate the volume of a hyperspace using Monte Carlo.
+            This class inherits from previous class to compute the volume
+            (region) of a hyperspace using Monte Carlo.
         """
         self.num_samples = num_samples
         self.dimensions = dimensions
@@ -67,13 +79,13 @@ class MonteCarlo(MonteCarloIntegrator):
 
     def sample_points(self):
         """
-        To generate random points within the unit cube.
+            To generate random points within the unit cube.
         """
         return self.rng.uniform(-1, 1, size=(self.dimensions, self.num_samples))
 
     def twodimensionscatter(self):
         """
-        Visualise sampled points in 2D.
+            Visualise sampled points in 2D.
         """
         points = self.sample_points()
         inside = np.sum(points**2, axis=0) < 1
@@ -89,7 +101,7 @@ class MonteCarlo(MonteCarloIntegrator):
 
     def threedimensionscatter(self):
         """
-        Visualise sampled points in 3D.
+            Visualise sampled points in 3D.
         """
         points = self.sample_points()
         inside = np.sum(points**2, axis=0) < 1
@@ -107,17 +119,20 @@ class MonteCarlo(MonteCarloIntegrator):
 class GaussianIntegrator(MonteCarloIntegrator):
     def __init__(self, num_samples=100000, dimensions=1, sigma=1.0, x0=0.0):
         """
-        Monte Carlo integration of a Gaussian function.
+            Monte Carlo integration of a Gaussian function.
         """
         self.sigma = sigma
         self.x0 = x0
+
         lower_bounds = [-5 * sigma] * dimensions
         upper_bounds = [5 * sigma] * dimensions
+
         super().__init__(self.gaussian, lower_bounds, upper_bounds, num_samples)
 
     def gaussian(self, x):
         """
-        Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi)) * exp(-(x - x0)^2 / (2 * sigma^2))
+            Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi))
+            * exp(-(x - x0)^2 / (2 * sigma^2))
         """
         return (1 / (self.sigma * np.sqrt(2 * np.pi))) * np.exp(-((x - self.x0) ** 2) / (2 * self.sigma ** 2))
 
@@ -126,7 +141,7 @@ if __name__ == "__main__":
     dimensions_list = [2, 3, 4, 5]
 
     for d in dimensions_list:
-        mc_simulator = MonteCarlo(num_samples=num_samples, dimensions=d)
+        mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=d)
         volume_estimate = mc_simulator.integrate()
         print(f"Estimated volume for {d}D hyperspace: {volume_estimate:.6f}")
 
