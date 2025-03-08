@@ -16,7 +16,9 @@ from numpy.random import SeedSequence, default_rng
 #from mpi4py import MPI
 
 class MonteCarloIntegrator:
-    def __init__(self, function, lower_bounds, upper_bounds, num_samples=100000):
+    def __init__(
+            self, function, lower_bounds, upper_bounds, num_samples=100000
+    ):
         """
            To initialise the Monte Carlo class.
             Args:
@@ -38,7 +40,8 @@ class MonteCarloIntegrator:
             Returns:
                 The value computed by the integral.
         """
-        samples = self.rng.uniform(self.lower_bounds, self.upper_bounds, (self.num_samples, self.dimensions))
+        samples = self.rng.uniform(self.lower_bounds, self.upper_bounds, 
+                           (self.num_samples, self.dimensions))
         function_values = np.apply_along_axis(self.function, 1, samples)
 
         volume = np.prod(self.upper_bounds - self.lower_bounds)
@@ -75,13 +78,17 @@ class ContainedRegion(MonteCarloIntegrator):
         def inside_hyperspace(point):
             return 1 if np.sum(point**2) <= 1 else 0
 
-        super().__init__(inside_hyperspace, lower_bounds, upper_bounds, num_samples)
+        super().__init__(
+            inside_hyperspace, lower_bounds, upper_bounds, num_samples
+        )
 
     def sample_points(self):
         """
             To generate random points within the unit cube.
         """
-        return self.rng.uniform(-1, 1, size=(self.dimensions, self.num_samples))
+        return self.rng.uniform(
+            -1, 1, size=(self.dimensions, self.num_samples)
+        )
 
     def twodimensionscatter(self):
         """
@@ -91,8 +98,14 @@ class ContainedRegion(MonteCarloIntegrator):
         inside = np.sum(points**2, axis=0) < 1
 
         plt.figure(figsize=(6, 6))
-        plt.scatter(points[0][inside], points[1][inside], color='blue', label='Inside Circle', s=1)
-        plt.scatter(points[0][~inside], points[1][~inside], color='red', label='Outside Circle', s=1)
+        plt.scatter(
+            points[0][inside], points[1][inside], color='blue', 
+            label='Inside Circle', s=1
+        )
+        plt.scatter(
+            points[0][~inside], points[1][~inside], color='red', 
+            label='Outside Circle', s=1
+        )
         plt.legend(loc='upper right')
         plt.xlabel("x-axis")
         plt.ylabel("y-axis")
@@ -108,8 +121,14 @@ class ContainedRegion(MonteCarloIntegrator):
 
         fig = plt.figure(figsize=(8, 8))
         ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(points[0][inside], points[1][inside], points[2][inside], color='blue', s=1, label='Inside Sphere')
-        ax.scatter(points[0][~inside], points[1][~inside], points[2][~inside], color='red', s=1, label='Outside Sphere')
+        ax.scatter(
+            points[0][inside], points[1][inside], points[2][inside], 
+            color='blue', s=1, label='Inside Sphere'
+        )
+        ax.scatter(
+            points[0][~inside], points[1][~inside], points[2][~inside], 
+            color='red', s=1, label='Outside Sphere'
+        )
         ax.set_xlabel("x-axis")
         ax.set_ylabel("y-axis")
         ax.set_zlabel("z-axis")
@@ -127,14 +146,17 @@ class GaussianIntegrator(MonteCarloIntegrator):
         lower_bounds = [-5 * sigma] * dimensions
         upper_bounds = [5 * sigma] * dimensions
 
-        super().__init__(self.gaussian, lower_bounds, upper_bounds, num_samples)
+        super().__init__(
+            self.gaussian, lower_bounds, upper_bounds, num_samples
+        )
 
     def gaussian(self, x):
         """
             Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi))
             * exp(-(x - x0)^2 / (2 * sigma^2))
         """
-        return (1 / (self.sigma * np.sqrt(2 * np.pi))) * np.exp(-((x - self.x0) ** 2) / (2 * self.sigma ** 2))
+        return (1 / (self.sigma * np.sqrt(2 * np.pi))) * np.exp(-(
+            (x - self.x0) ** 2) / (2 * self.sigma ** 2))
 
 if __name__ == "__main__":
     num_samples = 100000
@@ -143,13 +165,19 @@ if __name__ == "__main__":
     for d in dimensions_list:
         mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=d)
         volume_estimate = mc_simulator.integrate()
-        print(f"Estimated volume for {d}D hyperspace: {volume_estimate:.6f}")
+        print(
+            f"Estimated volume for {d}D hyperspace: {volume_estimate:.6f}"
+        )
 
         if d == 2:
             mc_simulator.twodimensionscatter()
         elif d == 3:
             mc_simulator.threedimensionscatter()
 
-    gaussian_integrator = GaussianIntegrator(num_samples=1000000, dimensions=1, sigma=1.0, x0=0.0)
+    gaussian_integrator = GaussianIntegrator(
+        num_samples=1000000, dimensions=1, sigma=1.0, x0=0.0
+    )
     integral_value = gaussian_integrator.integrate()
-    print(f"Estimated integral of Gaussian: {integral_value:.6f}")
+    print(
+        f"Estimated integral of Gaussian: {integral_value:.6f}"
+    )
