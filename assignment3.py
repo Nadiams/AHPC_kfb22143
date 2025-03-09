@@ -44,7 +44,6 @@ class MonteCarloIntegrator:
         """
             Function to use MPI Parallelism.
         """
-        mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=dimensions)
         volume = np.prod(upper_bounds - lower_bounds)
         local_samples = self.num_samples // self.size
         rng = default_rng(seed=self.rank)
@@ -71,18 +70,8 @@ class MonteCarloIntegrator:
                 The value computed by the integral.
         """
         local_samples = self.num_samples // self.size
-        rng = default_rng(seed=self.rank)
-        samples = self.rng.uniform(self.lower_bounds, self.upper_bounds, 
-                           (self.num_samples, self.dimensions))
-        for i in range(local_samples):
-            point = self.rng.uniform(-1, 1, dimensions)
-            if np.sum(point**2) <= 1:
-                count_inside += 1
-        region_volume = (2**dimensions) * (count_inside / local_samples)
-        total_volumes = comm.gather(region_volume, root=0)
         volume = np.prod(self.upper_bounds - self.lower_bounds)
         integral_estimate = volume * np.mean(function_values)
-
         return integral_estimate
 
     def transform_variable(self, t):
