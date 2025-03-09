@@ -184,7 +184,10 @@ def parallelmontecarlo(num_samples, dimensions):
         for i in range(0, dimensions):
             mean_volume = np.mean(total_volumes)
             variance = np.var(total_volumes)
-            print(f"The {dimensions}D Hyperspace Volume: {mean_volume:.6f} ± {np.sqrt(variance):.6f}")
+            print(
+                f"The {dimensions}D Hyperspace Volume: {mean_volume:.6f} "
+                f"± {np.sqrt(variance):.6f}"
+            )
 
 if __name__ == "__main__":
     parallelmontecarlo(num_samples=1000000, dimensions=5)
