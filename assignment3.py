@@ -40,14 +40,13 @@ class MonteCarloIntegrator:
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
         
-    def parallelmontecarlo(self, num_samples):
+    def parallelmontecarlo(self):
         """
             Function to use MPI Parallelism.
         """
         volume = np.prod(self.upper_bounds - self.lower_bounds)
         local_samples = self.num_samples // self.size
-        rng = default_rng(seed=self.rank)
-        count_inside = 0
+        count_inside = np.sum(np.sum(samples**2, axis=1) <= 1)
         samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
                                   (local_samples, self.dimensions))
         region_volume = (2 ** self.dimensions) * (count_inside / local_samples)
