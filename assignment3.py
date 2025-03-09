@@ -11,18 +11,16 @@ Created on Mon Mar  3 15:07:49 2025
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm
 from numpy.random import SeedSequence, default_rng
 from mpi4py import MPI
-import math
-from mpmath import mp, mpf
 
 class MonteCarloIntegrator:
-    def __init__(
-            self, function, lower_bounds, upper_bounds, num_samples=100000
-    ):
+    """
+        To initialise the Monte Carlo class.
+    """
+    def __init__(self, function, lower_bounds, upper_bounds, num_samples=100000):
         """
-           To initialise the Monte Carlo class.
+            Initialises parameters.
             Args:
                 function: The function to integrate.
                 lower_bounds: List of lower bounds for each dimension.
@@ -35,20 +33,19 @@ class MonteCarloIntegrator:
         self.num_samples = num_samples
         self.dimensions = len(lower_bounds)
         self.rng = default_rng(SeedSequence())
-        
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
-        
-    def parallelmontecarlo(self):
+
+    def parallel_monte_carlo(self):
         """
             Function to use MPI Parallelism.
         """
-        volume = np.prod(self.upper_bounds - self.lower_bounds)
         local_samples = self.num_samples // self.size
-        count_inside = np.sum(np.sum(samples**2, axis=1) <= 1)
         samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
-                                  (local_samples, self.dimensions))
+                                   (local_samples, self.dimensions)
+        )
+        count_inside = np.sum(np.sum(samples**2, axis=1) <= 1)
         region_volume = (2 ** self.dimensions) * (count_inside / local_samples)
         total_volumes = self.comm.gather(region_volume, root=0)
 
@@ -69,7 +66,8 @@ class MonteCarloIntegrator:
         """
         local_samples = self.num_samples // self.size
         samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
-                                  (local_samples, self.dimensions))
+                                  (local_samples, self.dimensions)
+        )
         volume = np.prod(self.upper_bounds - self.lower_bounds)
         function_values = np.mean(
                             [self.function(sample) for sample in samples]
@@ -79,9 +77,9 @@ class MonteCarloIntegrator:
 
     def transform_variable(self, t):
         """
-            Computes the integral of f(x) over (-∞, ∞) using the
-            transformation x = t / (1 - t^2).
-            Returns:
+        Computes the integral of f(x) over (-∞, ∞) using the transformation
+        x = t / (1 - t^2).
+        Returns:
                 The transformed variable.
                 The Jacobian determinant.
         """
@@ -90,10 +88,15 @@ class MonteCarloIntegrator:
         return x, jacobian
 
 class ContainedRegion(MonteCarloIntegrator):
+    """
+        This class inherits from previous class to compute the volume (region)
+        of a hyperspace using Monte Carlo.
+    """
     def __init__(self, num_samples=10000, dimensions=5, seed=12345):
         """
-            This class inherits from previous class to compute the volume
-            (region) of a hyperspace using Monte Carlo.
+            Initialises parameters.
+            Args:
+                num_samples, dimensions, seed.
         """
         self.num_samples = num_samples
         self.dimensions = dimensions
@@ -115,7 +118,7 @@ class ContainedRegion(MonteCarloIntegrator):
             To generate random points within the unit cube.
         """
         return self.rng.uniform(
-            -1, 1, size=(self.num_samples, self.dimensions)
+                                -1, 1, size=(self.num_samples, self.dimensions)
         )
 
     def twodimensionscatter(self):
@@ -127,11 +130,11 @@ class ContainedRegion(MonteCarloIntegrator):
 
         plt.figure(figsize=(6, 6))
         plt.scatter(
-            points[0][inside], points[1][inside], color='blue', 
+            points[0][inside], points[1][inside], color='blue',
             label='Inside Circle', s=1
         )
         plt.scatter(
-            points[0][~inside], points[1][~inside], color='red', 
+            points[0][~inside], points[1][~inside], color='red',
             label='Outside Circle', s=1
         )
         plt.legend(loc='upper right')
@@ -150,12 +153,12 @@ class ContainedRegion(MonteCarloIntegrator):
         fig = plt.figure(figsize=(8, 8))
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(
-            points[0][inside], points[1][inside], points[2][inside], 
-            color='blue', s=1, label='Inside Sphere'
+                points[0][inside], points[1][inside], points[2][inside],
+                color='blue', s=1, label='Inside Sphere'
         )
         ax.scatter(
-            points[0][~inside], points[1][~inside], points[2][~inside], 
-            color='red', s=1, label='Outside Sphere'
+                points[0][~inside], points[1][~inside], points[2][~inside],
+                color='red', s=1, label='Outside Sphere'
         )
         ax.set_xlabel("x-axis")
         ax.set_ylabel("y-axis")
@@ -164,9 +167,14 @@ class ContainedRegion(MonteCarloIntegrator):
         ax.legend()
 
 class GaussianIntegrator(MonteCarloIntegrator):
+    """
+        Monte Carlo integration of a Gaussian function.
+    """
     def __init__(self, num_samples=100000, dimensions=1, sigma=1.0, x0=0.0):
         """
-            Monte Carlo integration of a Gaussian function.
+            Initialises parameters for Gaussian function.
+            Args:
+                num_samples, dimensions, sigma, x0.
         """
         self.sigma = sigma
         self.x0 = x0
@@ -184,58 +192,27 @@ class GaussianIntegrator(MonteCarloIntegrator):
             * exp(-(x - x0)^2 / (2 * sigma^2))
         """
         return (1 / (self.sigma * np.sqrt(2 * np.pi))) * np.exp(-(
-            (x - self.x0) ** 2) / (2 * self.sigma ** 2))
-
-def parallelmontecarlo(num_samples, dimensions):
-    """
-        Class to use MPI Parallelism.
-    """
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-    mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=dimensions)
-    lower_bounds = np.array([-1] * dimensions, dtype=float)
-    upper_bounds = np.array([1] * dimensions, dtype=float)
-    volume = np.prod(upper_bounds - lower_bounds)
-    local_samples = num_samples // size
-    rng = np.random.default_rng(seed=rank)
-    count_inside = 0
-    for i in range(local_samples):
-        point = rng.uniform(-1, 1, dimensions)
-        if np.sum(point**2) <= 1:
-            count_inside += 1
-    region_volume = (2**dimensions) * (count_inside / local_samples)
-    total_volumes = comm.gather(region_volume, root=0)
-    if rank == 0:
-        for i in range(0, dimensions):
-            mean_volume = np.mean(total_volumes)
-            variance = np.var(total_volumes)
-            print(
-                f"The {dimensions}D Hyperspace Volume: {mean_volume:.6f} "
-                f"± {np.sqrt(variance):.6f}"
-            )
+                (x - self.x0) ** 2) / (2 * self.sigma ** 2)
+        )
 
 if __name__ == "__main__":
-    parallelmontecarlo(num_samples=1000000, dimensions=5)
-    num_samples = 100000
+    MAIN_NUM_SAMPLES = 1000000
     dimensions_list = [2, 3, 4, 5]
 
     for d in dimensions_list:
-        mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=d)
+        mc_simulator = ContainedRegion(num_samples=MAIN_NUM_SAMPLES,
+                                       dimensions=d
+                                       )
+        mc_simulator.parallel_monte_carlo()
         volume_estimate = mc_simulator.integrate()
-        print(
-            f"The volume for {d}D hyperspace: {volume_estimate:.6f}"
-        )
-
+        print(f"The volume for {d}D hyperspace: {volume_estimate:.6f}")
         if d == 2:
             mc_simulator.twodimensionscatter()
         elif d == 3:
             mc_simulator.threedimensionscatter()
 
-    gaussian_integrator = GaussianIntegrator(
-        num_samples=1000000, dimensions=1, sigma=1.0, x0=0.0
+    gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
+                                             dimensions=1, sigma=1.0, x0=0.0
     )
-    integral_value = gaussian_integrator.integrate()
-    print(
-        f"The integral of Gaussian: {integral_value:.6f}"
-    )
+    integral_value_gaussian = gaussian_integrator.integrate()
+    print(f"The integral of Gaussian: {integral_value_gaussian:.6f}")
