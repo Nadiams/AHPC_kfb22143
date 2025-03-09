@@ -40,16 +40,45 @@ class MonteCarloIntegrator:
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
         self.rng = default_rng(seed=self.rank)
-def parallelmontecarlo(num_samples, dimensions):
-    """
-        Class to use MPI Parallelism.
-    """
+        
+        def parallelmontecarlo(num_samples, dimensions):
+            """
+                Class to use MPI Parallelism.
+            """
+            comm = MPI.COMM_WORLD
+            rank = comm.Get_rank()
+            size = comm.Get_size()
+            mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=dimensions)
+            lower_bounds = np.array([-1] * dimensions, dtype=float)
+            upper_bounds = np.array([1] * dimensions, dtype=float)
+            volume = np.prod(upper_bounds - lower_bounds)
+            local_samples = num_samples // size
+            rng = np.random.default_rng(seed=rank)
+            count_inside = 0
+            for i in range(local_samples):
+                point = rng.uniform(-1, 1, dimensions)
+                if np.sum(point**2) <= 1:
+                    count_inside += 1
+            region_volume = (2**dimensions) * (count_inside / local_samples)
+            total_volumes = comm.gather(region_volume, root=0)
+            if rank == 0:
+                for i in range(0, dimensions):
+                    mean_volume = np.mean(total_volumes)
+                    variance = np.var(total_volumes)
+                    print(
+                        f"The {dimensions}D Hyperspace Volume: {mean_volume:.6f} "
+                        f"± {np.sqrt(variance):.6f}"
+                    )
+        
+        def parallelmontecarlo(self, num_samples, dimensions):
+            """
+                Function to use MPI Parallelism.
+            """
     mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=dimensions)
     volume = np.prod(upper_bounds - lower_bounds)
-    local_samples = num_samples // size
-    rng = np.random.default_rng(seed=rank)
+    local_samples = self.num_samples // self.size
+    rng = default_rng(seed=self.rank)
     count_inside = 0
-
 
     def integrate(self):
         """
@@ -64,7 +93,7 @@ def parallelmontecarlo(num_samples, dimensions):
                            (self.num_samples, self.dimensions))
         function_values = np.apply_along_axis(self.function, 1, samples)
         for i in range(local_samples):
-            point = rng.uniform(-1, 1, dimensions)
+            point = self.rng.uniform(-1, 1, dimensions)
             if np.sum(point**2) <= 1:
                 count_inside += 1
         region_volume = (2**dimensions) * (count_inside / local_samples)
