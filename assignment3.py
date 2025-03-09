@@ -188,8 +188,6 @@ def parallelmontecarlo(num_samples, dimensions):
 
 if __name__ == "__main__":
     parallelmontecarlo(num_samples=1000000, dimensions=5)
-
-if __name__ == "__main__":
     num_samples = 100000
     dimensions_list = [2, 3, 4, 5]
 
