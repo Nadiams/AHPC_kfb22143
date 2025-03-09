@@ -48,8 +48,8 @@ class MonteCarloIntegrator:
         local_samples = self.num_samples // self.size
         rng = default_rng(seed=self.rank)
         count_inside = 0
-        samples = rng.uniform(self.lower_bounds, self.upper_bounds,
-                             (local_samples, self.dimensions))
+        samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
+                                  (local_samples, self.dimensions))
         region_volume = (2 ** self.dimensions) * (count_inside / local_samples)
         total_volumes = self.comm.gather(region_volume, root=0)
 
