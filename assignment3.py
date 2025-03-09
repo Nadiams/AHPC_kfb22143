@@ -16,75 +16,83 @@ from mpi4py import MPI
 
 class MonteCarloIntegrator:
     """
-        To initialise the Monte Carlo class.
-    """
+	To initialise the Monte Carlo class.
+	"""
     def __init__(self, function, lower_bounds, upper_bounds, num_samples=100000):
         """
-            Initialises parameters.
-            Args:
-                function: The function to integrate.
-                lower_bounds: List of lower bounds for each dimension.
-                upper_bounds: List of upper bounds for each dimension.
-                num_samples: Number of random samples to take.
-        """
-        self.function = function
-        self.lower_bounds = np.array(lower_bounds, dtype=float)
-        self.upper_bounds = np.array(upper_bounds, dtype=float)
-        self.num_samples = num_samples
-        self.dimensions = len(lower_bounds)
+		Initialises parameters.
+		Args:
+			function: The function to integrate.
+			lower_bounds: List of lower bounds for each dimension.
+			upper_bounds: List of upper bounds for each dimension.
+			num_samples: Number of random samples to take.
+		"""
+        self.params = {
+            'function': function,
+            'num_samples': num_samples,
+            'dimensions': len(lower_bounds),
+            'bounds': {
+                'lower': np.array(lower_bounds, dtype=float),
+                'upper': np.array(upper_bounds, dtype=float)
+            }
+        }
+        self.rng = default_rng(SeedSequence())
+        self.mpi_info = {
+            'comm': MPI.COMM_WORLD,
+            'rank': MPI.COMM_WORLD.Get_rank(),
+            'size': MPI.COMM_WORLD.Get_size()
+        }
 
     def parallel_monte_carlo(self):
         """
-            Function to use MPI Parallelism.
-        """
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        size = comm.Get_size()
-        local_samples = self.num_samples // size
-        samples = default_rng().uniform(self.lower_bounds, self.upper_bounds,
-				(local_samples, self.dimensions)
-		)
+		Function to use MPI Parallelism.
+		"""
+        local_samples = self.params['num_samples'] // self.mpi_info['size']
+        samples = self.rng.uniform(
+            self.params['bounds']['lower'],
+            self.params['bounds']['upper'],
+            (local_samples, self.params['dimensions'])
+        )
         count_inside = np.sum(np.sum(samples**2, axis=1) <= 1)
-        region_volume = (2 ** self.dimensions) * (count_inside / local_samples)
-        total_volumes = comm.gather(region_volume, root=0)
+        region_volume = (2 ** self.params['dimensions']) * (count_inside / local_samples)
+        total_volumes = self.mpi_info['comm'].gather(region_volume, root=0)
 
-        if rank == 0:
+        if self.mpi_info['rank'] == 0:
             mean_volume = np.mean(total_volumes)
             variance = np.var(total_volumes)
             print(
-                f"The {self.dimensions}D Hyperspace Volume: {mean_volume:.6f}"
+                f"The {self.params['dimensions']}D Hyperspace Volume: {mean_volume:.6f}"
                 f" ± {np.sqrt(variance):.6f}"
             )
 
     def integrate(self):
         """
-            Performs the Monte Carlo integration to estimate the integral
-            in parallel across multiple processors.
+    		Performs the Monte Carlo integration to estimate the integral in
+            parallel across multiple processors.
             Returns:
                 The value computed by the integral.
-        """
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        size = comm.Get_size()
-        local_samples = self.num_samples // size
-        samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
-                                  (local_samples, self.dimensions)
+		"""
+        local_samples = self.params['num_samples'] // self.mpi_info['size']
+        samples = self.rng.uniform(
+            self.params['bounds']['lower'],
+            self.params['bounds']['upper'],
+            (local_samples, self.params['dimensions'])
         )
-        volume = np.prod(self.upper_bounds - self.lower_bounds)
-        function_values = np.mean(
-                            [self.function(sample) for sample in samples]
-                        )
+        volume = np.prod(self.params['bounds']['upper'] -
+                         self.params['bounds']['lower'])
+        function_values = np.mean([self.params['function'](sample)
+                                   for sample in samples])
         integral_value = volume * function_values
         return integral_value
 
     def transform_variable(self, t):
         """
-        Computes the integral of f(x) over (-∞, ∞) using the transformation
-        x = t / (1 - t^2).
-        Returns:
+    		Computes the integral of f(x) over (-∞, ∞) using the transformation
+            x = t / (1 - t^2).
+            Returns:
                 The transformed variable.
                 The Jacobian determinant.
-        """
+		"""
         x = t / (1 - t**2)
         jacobian = (1 + t**2) / (1 - t**2)**2
         return x, jacobian
