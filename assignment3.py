@@ -58,7 +58,7 @@ class MonteCarloIntegrator:
                 variance = np.var(total_volumes)
                 print(
                     f"The {self.dimensions}D Hyperspace Volume: {mean_volume:.6f}"
-                    f"± {np.sqrt(variance):.6f}"
+                    f" ± {np.sqrt(variance):.6f}"
                 )
 
     def integrate(self):
@@ -70,11 +70,11 @@ class MonteCarloIntegrator:
         """
         local_samples = self.num_samples // self.size
         samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
-                                  (self.num_samples, self.dimensions))
+                                  (local_samples, self.dimensions))
         volume = np.prod(self.upper_bounds - self.lower_bounds)
         function_values = np.mean(
                             [self.function(sample) for sample in samples]
-                            )
+                        )
         integral_value = volume * function_values
         return integral_value
 
