@@ -160,7 +160,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         return (1 / (self.sigma * np.sqrt(2 * np.pi))) * np.exp(-(
             (x - self.x0) ** 2) / (2 * self.sigma ** 2))
 
-def parallel_monte_carlo(num_samples, dimensions):
+def parallelmontecarlo(num_samples, dimensions):
     """
         Class to use MPI Parallelism.
     """
@@ -184,53 +184,10 @@ def parallel_monte_carlo(num_samples, dimensions):
         for i in range(0, dimensions):
             mean_volume = np.mean(total_volumes)
             variance = np.var(total_volumes)
+            print(f"The {dimensions}D Hyperspace Volume: {final_volume:.6f} ± {np.sqrt(variance):.6f}")
 
-def integrand(x):
-    """
-    Function to solve pi.
-    Args:
-        x (mpf): x is evaluated by the workers and fed back through a 
-        loop in parallel with each other.
-    Returns:
-        mpf: the value of pi worked out by the integrand function.
-    """
-    return mpf(4.0) / (mpf(1.0) + x * x)
-    # maintained this method throughout the calculation.
-if comm.Get_rank() == 0: # Leader: choose points to sample function, send to workers and
-    # collect their contributions. Also calculate a sub-set of points.
-    for i in range(0, N):
-        # decide which rank evaluates this point
-        j = i % nproc
-        # mid-point rule
-        recv_x = (i + 0.5) * DELTA
-        if j == 0:
-            # so do this locally using the leader machine
-            y = integrand(recv_x) * DELTA
-        else:
-            # communicate to a worker
-            comm.send(recv_x, dest=j)
-            y = comm.recv(source=j)
-        I += comm.reduce(y, op=MPI.SUM, root=0)
-
-    # Shut down the workers
-    for i in range(1, nproc):
-        workersection = integrand(recv_x) * DELTA
-        comm.send(workersection, dest=0)
-    print(f"The value of pi to 15 s.f. = {float(I):.14f}")
-
-else:
-    # Worker: waiting for something to happen, then stop if sent message
-    # outside the integral limits
-    workersection = mpf(0.0)
-    while True:
-        recv_x = comm.recv(source=0)
-        if recv_x < 0.0:
-            # stop the worker
-            break
-        workersection += integrand(recv_x) * DELTA
-    comm.send(integrand(recv_x) * DELTA, dest=0)
-    
-    
+if __name__ == "__main__":
+    parallelmontecarlo(num_samples=1000000, dimensions=5)
 
 
 if __name__ == "__main__":
