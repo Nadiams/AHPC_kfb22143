@@ -73,9 +73,10 @@ class MonteCarloIntegrator:
         samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
                                   (self.num_samples, self.dimensions))
         volume = np.prod(self.upper_bounds - self.lower_bounds)
-        function_values = [self.function(sample) for sample in samples]
-
-        integral_estimate = volume * np.mean(function_values)
+        function_values = np.mean(
+                            [self.function(sample) for sample in samples]
+                            )
+        integral_estimate = volume * function_values
         return integral_estimate
 
     def transform_variable(self, t):
