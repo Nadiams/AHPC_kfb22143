@@ -33,14 +33,14 @@ class MonteCarloIntegrator:
         self.num_samples = num_samples
         self.dimensions = len(lower_bounds)
         self.rng = default_rng(SeedSequence())
-        self.comm = MPI.COMM_WORLD
-        self.rank = self.comm.Get_rank()
-        self.size = self.comm.Get_size()
 
     def parallel_monte_carlo(self):
         """
             Function to use MPI Parallelism.
         """
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
         local_samples = self.num_samples // self.size
         samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
                                    (local_samples, self.dimensions)
