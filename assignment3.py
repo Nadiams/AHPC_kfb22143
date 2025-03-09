@@ -41,20 +41,7 @@ class MonteCarloIntegrator:
         self.size = self.comm.Get_size()
         self.rng = default_rng(seed=self.rank)
         
-        def parallelmontecarlo(num_samples, dimensions):
-            """
-                Class to use MPI Parallelism.
-            """
-            comm = MPI.COMM_WORLD
-            rank = comm.Get_rank()
-            size = comm.Get_size()
-            mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=dimensions)
-            lower_bounds = np.array([-1] * dimensions, dtype=float)
-            upper_bounds = np.array([1] * dimensions, dtype=float)
-            volume = np.prod(upper_bounds - lower_bounds)
-            local_samples = num_samples // size
-            rng = np.random.default_rng(seed=rank)
-            count_inside = 0
+
             for i in range(local_samples):
                 point = rng.uniform(-1, 1, dimensions)
                 if np.sum(point**2) <= 1:
