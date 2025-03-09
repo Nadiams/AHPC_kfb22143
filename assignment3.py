@@ -89,7 +89,7 @@ class ContainedRegion(MonteCarloIntegrator):
             To generate random points within the unit cube.
         """
         return self.rng.uniform(
-            -1, 1, size=(self.dimensions, self.num_samples)
+            -1, 1, size=(self.num_samples, self.dimensions)
         )
 
     def twodimensionscatter(self):
@@ -167,7 +167,7 @@ def parallelmontecarlo(num_samples, dimensions):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
-    mc_simulator = MonteCarlo(num_samples=num_samples, dimensions=dimensions)
+    mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=dimensions)
     lower_bounds = np.array([-1] * dimensions, dtype=float)
     upper_bounds = np.array([1] * dimensions, dtype=float)
     volume = np.prod(upper_bounds - lower_bounds)
@@ -184,11 +184,10 @@ def parallelmontecarlo(num_samples, dimensions):
         for i in range(0, dimensions):
             mean_volume = np.mean(total_volumes)
             variance = np.var(total_volumes)
-            print(f"The {dimensions}D Hyperspace Volume: {final_volume:.6f} ± {np.sqrt(variance):.6f}")
+            print(f"The {dimensions}D Hyperspace Volume: {mean_volume:.6f} ± {np.sqrt(variance):.6f}")
 
 if __name__ == "__main__":
     parallelmontecarlo(num_samples=1000000, dimensions=5)
-
 
 if __name__ == "__main__":
     num_samples = 100000
