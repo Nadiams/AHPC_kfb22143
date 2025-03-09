@@ -41,15 +41,15 @@ class MonteCarloIntegrator:
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
-        local_samples = self.num_samples // self.size
-        samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
-                                   (local_samples, self.dimensions)
-        )
+        local_samples = self.num_samples // size
+        samples = default_rng().uniform(self.lower_bounds, self.upper_bounds,
+				(local_samples, self.dimensions)
+		)
         count_inside = np.sum(np.sum(samples**2, axis=1) <= 1)
         region_volume = (2 ** self.dimensions) * (count_inside / local_samples)
-        total_volumes = self.comm.gather(region_volume, root=0)
+        total_volumes = comm.gather(region_volume, root=0)
 
-        if self.rank == 0:
+        if rank == 0:
             mean_volume = np.mean(total_volumes)
             variance = np.var(total_volumes)
             print(
