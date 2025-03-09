@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 from numpy.random import SeedSequence, default_rng
 #from mpi4py import MPI
+import math
+from mpmath import mp, mpf
 
 class MonteCarloIntegrator:
     def __init__(
@@ -164,12 +166,24 @@ def parallel_monte_carlo(num_samples, dimensions):
     """
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
-    nproc = comm.Get_size()
+    size = comm.Get_size()
     mc_simulator = MonteCarlo(num_samples=num_samples, dimensions=dimensions)
-    
+    lower_bounds = np.array([-1] * dimensions, dtype=float)
+    upper_bounds = np.array([1] * dimensions, dtype=float)
+    volume = np.prod(upper_bounds - lower_bounds)
+    local_samples = num_samples / size
+    rng = np.random.default_rng(seed=rank)
+    count_inside = 0
+    for i in range(local_samples):
+        point = rng.uniform(-1, 1, dimensions)  # Generate a random point in the unit cube
+        if np.sum(point**2) <= 1:
+            count_inside += 1
+    region_volume = (2**dimensions) * (count_inside / local_samples)
+    total_volumes = comm.gather(region_volume)
     if rank == 0:
-        for i in range(0, d):
-            
+        for i in range(0, dimensions):
+            mean_volume = np.mean(total_volumes)
+            variance = np.var(total_volumes)
 
 def integrand(x):
     """
@@ -227,7 +241,7 @@ if __name__ == "__main__":
         mc_simulator = ContainedRegion(num_samples=num_samples, dimensions=d)
         volume_estimate = mc_simulator.integrate()
         print(
-            f"Estimated volume for {d}D hyperspace: {volume_estimate:.6f}"
+            f"The volume for {d}D hyperspace: {volume_estimate:.6f}"
         )
 
         if d == 2:
@@ -240,5 +254,5 @@ if __name__ == "__main__":
     )
     integral_value = gaussian_integrator.integrate()
     print(
-        f"Estimated integral of Gaussian: {integral_value:.6f}"
+        f"The integral of Gaussian: {integral_value:.6f}"
     )
