@@ -44,7 +44,7 @@ class MonteCarloIntegrator:
         """
             Function to use MPI Parallelism.
         """
-        volume = np.prod(upper_bounds - lower_bounds)
+        volume = np.prod(self.upper_bounds - self.lower_bounds)
         local_samples = self.num_samples // self.size
         rng = default_rng(seed=self.rank)
         count_inside = 0
@@ -55,12 +55,12 @@ class MonteCarloIntegrator:
 
         if self.rank == 0:
             for i in range(0, dimensions):
-            mean_volume = np.mean(total_volumes)
-            variance = np.var(total_volumes)
-            print(
-                f"The {self.dimensions}D Hyperspace Volume: {mean_volume:.6f}"
-                f"± {np.sqrt(variance):.6f}"
-            )
+                mean_volume = np.mean(total_volumes)
+                variance = np.var(total_volumes)
+                print(
+                    f"The {self.dimensions}D Hyperspace Volume: {mean_volume:.6f}"
+                    f"± {np.sqrt(variance):.6f}"
+                )
 
     def integrate(self):
         """
@@ -70,7 +70,13 @@ class MonteCarloIntegrator:
                 The value computed by the integral.
         """
         local_samples = self.num_samples // self.size
+        samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
+                                  (self.num_samples, self.dimensions))
         volume = np.prod(self.upper_bounds - self.lower_bounds)
+        function_values = []
+        for sample in samples:
+            function_values.append(self.function(sample))
+
         integral_estimate = volume * np.mean(function_values)
         return integral_estimate
 
