@@ -40,7 +40,7 @@ class MonteCarloIntegrator:
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
         
-    def parallelmontecarlo(self, num_samples, dimensions):
+    def parallelmontecarlo(self, num_samples):
         """
             Function to use MPI Parallelism.
         """
