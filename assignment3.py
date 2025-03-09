@@ -53,13 +53,12 @@ class MonteCarloIntegrator:
         total_volumes = self.comm.gather(region_volume, root=0)
 
         if self.rank == 0:
-            for i in range(0, dimensions):
-                mean_volume = np.mean(total_volumes)
-                variance = np.var(total_volumes)
-                print(
-                    f"The {self.dimensions}D Hyperspace Volume: {mean_volume:.6f}"
-                    f" ± {np.sqrt(variance):.6f}"
-                )
+            mean_volume = np.mean(total_volumes)
+            variance = np.var(total_volumes)
+            print(
+                f"The {self.dimensions}D Hyperspace Volume: {mean_volume:.6f}"
+                f" ± {np.sqrt(variance):.6f}"
+            )
 
     def integrate(self):
         """
