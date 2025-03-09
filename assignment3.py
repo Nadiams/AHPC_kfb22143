@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 from numpy.random import SeedSequence, default_rng
-#from mpi4py import MPI
+from mpi4py import MPI
 import math
 from mpmath import mp, mpf
 
