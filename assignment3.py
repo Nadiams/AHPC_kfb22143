@@ -32,7 +32,6 @@ class MonteCarloIntegrator:
         self.upper_bounds = np.array(upper_bounds, dtype=float)
         self.num_samples = num_samples
         self.dimensions = len(lower_bounds)
-        self.rng = default_rng(SeedSequence())
 
     def parallel_monte_carlo(self):
         """
@@ -64,7 +63,10 @@ class MonteCarloIntegrator:
             Returns:
                 The value computed by the integral.
         """
-        local_samples = self.num_samples // self.size
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+        local_samples = self.num_samples // size
         samples = self.rng.uniform(self.lower_bounds, self.upper_bounds,
                                   (local_samples, self.dimensions)
         )
