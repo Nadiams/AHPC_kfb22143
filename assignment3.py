@@ -76,8 +76,8 @@ class MonteCarloIntegrator:
         function_values = np.mean(
                             [self.function(sample) for sample in samples]
                             )
-        integral_estimate = volume * function_values
-        return integral_estimate
+        integral_value = volume * function_values
+        return integral_value
 
     def transform_variable(self, t):
         """
