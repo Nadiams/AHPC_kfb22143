@@ -171,15 +171,15 @@ def parallel_monte_carlo(num_samples, dimensions):
     lower_bounds = np.array([-1] * dimensions, dtype=float)
     upper_bounds = np.array([1] * dimensions, dtype=float)
     volume = np.prod(upper_bounds - lower_bounds)
-    local_samples = num_samples / size
+    local_samples = num_samples // size
     rng = np.random.default_rng(seed=rank)
     count_inside = 0
     for i in range(local_samples):
-        point = rng.uniform(-1, 1, dimensions)  # Generate a random point in the unit cube
+        point = rng.uniform(-1, 1, dimensions)
         if np.sum(point**2) <= 1:
             count_inside += 1
     region_volume = (2**dimensions) * (count_inside / local_samples)
-    total_volumes = comm.gather(region_volume)
+    total_volumes = comm.gather(region_volume, root=0)
     if rank == 0:
         for i in range(0, dimensions):
             mean_volume = np.mean(total_volumes)
