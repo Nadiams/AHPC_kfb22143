@@ -85,18 +85,6 @@ class MonteCarloIntegrator:
         integral_value = volume * function_values
         return integral_value
 
-    def transform_variable(self, t):
-        """
-    		Computes the integral of f(x) over (-∞, ∞) using the transformation
-            x = t / (1 - t^2).
-            Returns:
-                The transformed variable.
-                The Jacobian determinant.
-		"""
-        x = t / (1 - t**2)
-        jacobian = (1 + t**2) / (1 - t**2)**2
-        return x, jacobian
-
 class ContainedRegion(MonteCarloIntegrator):
     """
         This class inherits from previous class to compute the volume (region)
@@ -205,6 +193,18 @@ class GaussianIntegrator(MonteCarloIntegrator):
         exponent = -np.sum((x - self.x0)**2) / (2 * self.sigma**2)
         return normalization_factor * np.exp(exponent)
 
+    def transform_variable(self, t):
+        """
+        	Computes the integral of f(x) over (-∞, ∞) using the transformation
+            x = t / (1 - t^2).
+            Returns:
+                The transformed variable.
+                The Jacobian determinant.
+    	"""
+        x = t / (1 - t**2)
+        jacobian = (1 + t**2) / (1 - t**2)**2
+        return x, jacobian
+
 if __name__ == "__main__":
     MAIN_NUM_SAMPLES = 1000000
     dimensions_list = [2, 3, 4, 5]
@@ -215,7 +215,8 @@ if __name__ == "__main__":
                                        )
         mc_simulator.parallel_monte_carlo()
         volume_estimate = mc_simulator.integrate()
-        print(f"The volume for {d}D hyperspace: {volume_estimate:.6f}")
+        if self.mpi_info['rank'] == 0:
+            print(f"The volume for {d}D hyperspace: {volume_estimate:.6f}")
         if d == 2:
             mc_simulator.twodimensionscatter()
         elif d == 3:
