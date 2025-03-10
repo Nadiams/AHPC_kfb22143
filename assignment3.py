@@ -61,8 +61,8 @@ class MonteCarloIntegrator:
             mean_volume = np.mean(total_volumes)
             variance = np.var(total_volumes)
             print(
-                f"The {self.params['dimensions']}D Hyperspace Volume: {mean_volume:.6f}"
-                f" ± {np.sqrt(variance):.6f}"
+                f"The {self.params['dimensions']}D Hyperspace Volume: {mean_volume:.4f}"
+                f" ± {np.sqrt(variance):.4f}"
             )
 
     def integrate(self):
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         mc_simulator.parallel_monte_carlo()
         volume_estimate = mc_simulator.integrate()
         if self.mpi_info['rank'] == 0:
-            print(f"The volume for {d}D hyperspace: {volume_estimate:.6f}")
+            print(f"The volume for {d}D hyperspace: {volume_estimate:.4f}")
         if d == 2:
             mc_simulator.twodimensionscatter()
         elif d == 3:
