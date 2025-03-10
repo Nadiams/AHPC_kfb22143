@@ -8,11 +8,33 @@ Created on Mon Mar  3 15:07:49 2025
 
 @author: nadia
 """
-
+import copy
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.random import SeedSequence, default_rng
 from mpi4py import MPI
+
+class Error:
+    def __init__(self, N, mean, variance):
+        self.N = N
+        self.mean = mean
+        self.variance = variance
+        
+    def __add__(self, other):
+        temporary = copy.deepcopy(self)
+        temporary.N += other.N
+        temporary.mean = ( self.N * self.mean + other.N * other.mean 
+                          ) / temporary.N
+        temporary.variance = self.parallel_variance(self.N, self.mean, self.variance,
+                                                    other.N, other.mean, other.variance)
+        return temporary
+
+    def parallel_variance(nA, avgA, m2A, nB, avgB, m2B):
+        nAB = nA + nB
+        delta = avgB - avgA
+        m2 = m2A + m2B + delta**2 * nA * nB / nAB
+        varAB = m2 / (nAB - 1)
+        return varAB
 
 class MonteCarloIntegrator:
     """
@@ -65,6 +87,7 @@ class MonteCarloIntegrator:
                 f" ± {np.sqrt(variance):.4f}"
             )
 
+
     def integrate(self):
         """
     		Performs the Monte Carlo integration to estimate the integral in
@@ -85,12 +108,6 @@ class MonteCarloIntegrator:
         integral_value = volume * function_values
         return integral_value
 
-    def parallel_variance(nA, avgA, m2A, nB, avgB, m2B):
-        nAB = nA + nB
-        delta = avgB - avgA
-        m2 = m2A + m2B + delta**2 * nA * nB / nAB
-        varAB = m2 / (nAB - 1)
-        return varAB
 
 class ContainedRegion(MonteCarloIntegrator):
     """
@@ -213,21 +230,21 @@ class GaussianIntegrator(MonteCarloIntegrator):
         jacobian = (1 + t**2) / (1 - t**2)**2
         return x, jacobian
     
-    def gaussianplot(self):
-        plt.figure(figsize=(6, 6))
-        plt.plot(gaussian_output, 
-            , color='blue',
-            label='Inside Circle', s=1
-        )
-        plt.scatter(
-            points[0][~inside], points[1][~inside], color='red',
-            label='Outside Circle', s=1
-        )
-        plt.legend(loc='upper right')
-        plt.xlabel("x-axis")
-        plt.ylabel("y-axis")
-        plt.title("Monte Carlo Sampling of a 2D Circle")
-        plt.grid()
+   # def gaussianplot(self):
+    #    plt.figure(figsize=(6, 6))
+     #   plt.plot(gaussian_output, 
+      #  , color='blue',
+       #     label='Inside Circle', s=1
+        #)
+        #plt.scatter(
+         #   points[0][~inside], points[1][~inside], color='red',
+          #  label='Outside Circle', s=1
+        #)
+        #plt.legend(loc='upper right')
+        #plt.xlabel("x-axis")
+        #plt.ylabel("y-axis")
+        #plt.title("Monte Carlo Sampling of a 2D Circle")
+        #plt.grid()
 
 if __name__ == "__main__":
     MAIN_NUM_SAMPLES = 1000000
