@@ -188,7 +188,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
         self.sigma = sigma
         self.x0 = x0
-
+        self.dimensions = dimensions
         lower_bounds = [-5 * sigma] * dimensions
         upper_bounds = [5 * sigma] * dimensions
 
@@ -201,9 +201,9 @@ class GaussianIntegrator(MonteCarloIntegrator):
             Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi))
             * exp(-(x - x0)^2 / (2 * sigma^2))
         """
-        return (1 / (self.sigma * np.sqrt(2 * np.pi))) * np.exp(-(
-                (x - self.x0) ** 2) / (2 * self.sigma ** 2)
-        )
+        normalization_factor = 1 / (self.sigma * np.sqrt(2 * np.pi))**self.dimensions
+        exponent = -np.sum((x - self.x0)**2) / (2 * self.sigma**2)
+        return normalization_factor * np.exp(exponent)
 
 if __name__ == "__main__":
     MAIN_NUM_SAMPLES = 1000000
@@ -221,8 +221,7 @@ if __name__ == "__main__":
         elif d == 3:
             mc_simulator.threedimensionscatter()
 
-    gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
-                                             dimensions=1, sigma=1.0, x0=0.0
-    )
-    integral_value_gaussian = gaussian_integrator.integrate()
-    print(f"The integral of Gaussian: {integral_value_gaussian:.6f}")
+        gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
+                                                 dimensions=d, sigma=1.0, x0=0.0)
+        integral_value_gaussian = gaussian_integrator.integrate()
+        print(f"The integral of Gaussian: {integral_value_gaussian:.4f}")
