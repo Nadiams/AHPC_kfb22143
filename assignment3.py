@@ -85,6 +85,13 @@ class MonteCarloIntegrator:
         integral_value = volume * function_values
         return integral_value
 
+    def parallel_variance(nA, avgA, m2A, nB, avgB, m2B):
+        nAB = nA + nB
+        delta = avgB - avgA
+        m2 = m2A + m2B + delta**2 * nA * nB / nAB
+        varAB = m2 / (nAB - 1)
+        return varAB
+
 class ContainedRegion(MonteCarloIntegrator):
     """
         This class inherits from previous class to compute the volume (region)
@@ -168,7 +175,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
     """
         Monte Carlo integration of a Gaussian function.
     """
-    def __init__(self, num_samples=100000, dimensions=1, sigma=1.0, x0=0.0):
+    def __init__(self, num_samples=100000, dimensions=[1,6], sigma=1.0, x0=0.0):
         """
             Initialises parameters for Gaussian function.
             Args:
@@ -191,7 +198,8 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
         normalization_factor = 1 / (self.sigma * np.sqrt(2 * np.pi))**self.dimensions
         exponent = -np.sum((x - self.x0)**2) / (2 * self.sigma**2)
-        return normalization_factor * np.exp(exponent)
+        gaussian_output = normalization_factor * np.exp(exponent)
+        return gaussian_output
 
     def transform_variable(self, t):
         """
@@ -204,6 +212,22 @@ class GaussianIntegrator(MonteCarloIntegrator):
         x = t / (1 - t**2)
         jacobian = (1 + t**2) / (1 - t**2)**2
         return x, jacobian
+    
+    def gaussianplot(self):
+        plt.figure(figsize=(6, 6))
+        plt.plot(gaussian_output, 
+            , color='blue',
+            label='Inside Circle', s=1
+        )
+        plt.scatter(
+            points[0][~inside], points[1][~inside], color='red',
+            label='Outside Circle', s=1
+        )
+        plt.legend(loc='upper right')
+        plt.xlabel("x-axis")
+        plt.ylabel("y-axis")
+        plt.title("Monte Carlo Sampling of a 2D Circle")
+        plt.grid()
 
 if __name__ == "__main__":
     MAIN_NUM_SAMPLES = 1000000
@@ -222,7 +246,7 @@ if __name__ == "__main__":
         elif d == 3:
             mc_simulator.threedimensionscatter()
 
-        gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
-                                                 dimensions=d, sigma=1.0, x0=0.0)
-        integral_value_gaussian = gaussian_integrator.integrate()
-        print(f"The integral of Gaussian: {integral_value_gaussian:.4f}")
+    gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
+                                                 dimensions=[1,6], sigma=1.0, x0=0.0)
+    integral_value_gaussian = gaussian_integrator.integrate()
+    print(f"The integral of Gaussian: {integral_value_gaussian:.4f}")
