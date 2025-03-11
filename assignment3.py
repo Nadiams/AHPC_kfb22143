@@ -204,6 +204,15 @@ class ContainedRegion(MonteCarloIntegrator):
         ax.set_zlabel("z-axis")
         ax.set_title("Monte Carlo Sampling of a 3D Sphere")
         ax.legend()
+    
+    def hyperspace_region_demo(self):
+        """
+            Hyperspace as a percentage of inner area to show the region.
+        """
+        points = self.sample_points()
+        inner = np.sum(points**2, axis=1) <= 1
+        inner_percentage = np.sum(inner) / self.num_samples
+        print(f"Percentage inside hyperspace: {inner_percentage:.4f}")
 
 class GaussianIntegrator(MonteCarloIntegrator):
     """
@@ -282,6 +291,8 @@ if __name__ == "__main__":
             mc_simulator.twodimensionscatter()
         elif d == 3:
             mc_simulator.threedimensionscatter()
+        else:
+            mc_simulator.hyperspace_region_demo()
 
     for dim in [1, 6]:
         gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
