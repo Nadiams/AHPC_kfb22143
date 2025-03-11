@@ -267,12 +267,25 @@ class GaussianIntegrator(MonteCarloIntegrator):
             Plot of 1D gaussian.
         """
         x_values = np.linspace(-1, 1, 500)
-        y_values = self.calculate_gaussian_1d(x_values)
+        y_values = self.gaussian(x_values)
         plt.plot(x_values, y_values, label="Gaussian (1D)", color="blue")
         plt.legend(loc='upper right')
         plt.xlabel("x-axis")
         plt.ylabel("y-axis")
         plt.title("Gaussian Distribution in 1D")
+        plt.grid()
+
+    def plot_gaussian_6d(self):
+        """
+            Plot of 6D gaussian.
+        """
+        x_values = np.linspace(-1, 1, 500)
+        y_values = self.gaussian(x_values)
+        plt.plot(x_values, y_values, label="Gaussian (6D)", color="blue")
+        plt.legend(loc='upper right')
+        plt.xlabel("x-axis")
+        plt.ylabel("y-axis")
+        plt.title("Gaussian Distribution in 6D")
         plt.grid()
 
 if __name__ == "__main__":
@@ -301,3 +314,4 @@ if __name__ == "__main__":
         print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
 
     gaussian_integrator.plot_gaussian_1d()
+    gaussian_integrator.plot_gaussian_6d()
