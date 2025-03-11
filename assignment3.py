@@ -15,26 +15,42 @@ from numpy.random import SeedSequence, default_rng
 from mpi4py import MPI
 
 class Error:
+    """
+        Class to calculate the error (mean + variance) in parallel.
+    """
     def __init__(self, N, mean, variance):
+        """
+        Initialises objects into Error class.
+        Args:
+            num_samples, mean, and variance.
+        """
         self.N = N
         self.mean = mean
         self.variance = variance
-        
+
     def __add__(self, other):
+        """
+        Adds two objects together.
+        """
         temporary = copy.deepcopy(self)
         temporary.N += other.N
-        temporary.mean = ( self.N * self.mean + other.N * other.mean 
+        temporary.mean = ( self.N * self.mean + other.N * other.mean
                           ) / temporary.N
-        temporary.variance = self.parallel_variance(self.N, self.mean, self.variance,
-                                                    other.N, other.mean, other.variance)
+        temporary.variance = self.parallel_variance(self.N, self.mean,
+                            self.variance, other.N, other.mean, other.variance
+        )
         return temporary
 
-    def parallel_variance(nA, avgA, m2A, nB, avgB, m2B):
-        nAB = nA + nB
-        delta = avgB - avgA
-        m2 = m2A + m2B + delta**2 * nA * nB / nAB
-        varAB = m2 / (nAB - 1)
-        return varAB
+    def parallel_variance(self, n_a, mean_a, var_a, n_b, mean_b, var_b):
+        """
+        Computes the combined variance for two groups of samples.
+        """
+        total_samples = n_a + n_b
+        delta_mean = mean_b - mean_a
+        final_m2 = (var_a * (n_a - 1) + var_b * (n_b - 1) +
+                       delta_mean**2 * n_a * n_b / total_samples)
+        final_variance = final_m2 / (total_samples - 1)
+        return final_variance
 
 class MonteCarloIntegrator:
     """
@@ -69,24 +85,25 @@ class MonteCarloIntegrator:
         """
 		Function to use MPI Parallelism.
 		"""
-        local_samples = self.params['num_samples'] // self.mpi_info['size']
+        region_samples = self.params['num_samples'] // self.mpi_info['size']
         samples = self.rng.uniform(
             self.params['bounds']['lower'],
             self.params['bounds']['upper'],
-            (local_samples, self.params['dimensions'])
+            (region_samples, self.params['dimensions'])
         )
         count_inside = np.sum(np.sum(samples**2, axis=1) <= 1)
-        region_volume = (2 ** self.params['dimensions']) * (count_inside / local_samples)
+        region_volume = (2 ** self.params['dimensions']
+                         ) * (count_inside / region_samples)
         total_volumes = self.mpi_info['comm'].gather(region_volume, root=0)
 
         if self.mpi_info['rank'] == 0:
             mean_volume = np.mean(total_volumes)
             variance = np.var(total_volumes)
             print(
-                f"The {self.params['dimensions']}D Hyperspace Volume: {mean_volume:.4f}"
-                f" ± {np.sqrt(variance):.4f}"
+                f"The {self.params['dimensions']}D Hyperspace Volume:"
+                f"  {mean_volume:.4f} ± {np.sqrt(variance):.4f}"
             )
-
+            return mean_volume, variance
 
     def integrate(self):
         """
@@ -95,18 +112,18 @@ class MonteCarloIntegrator:
             Returns:
                 The value computed by the integral.
 		"""
-        local_samples = self.params['num_samples'] // self.mpi_info['size']
+        region_samples = self.params['num_samples'] // self.mpi_info['size']
         samples = self.rng.uniform(
             self.params['bounds']['lower'],
             self.params['bounds']['upper'],
-            (local_samples, self.params['dimensions'])
+            (region_samples, self.params['dimensions'])
         )
         volume = np.prod(self.params['bounds']['upper'] -
                          self.params['bounds']['lower'])
         function_values = np.mean([self.params['function'](sample)
                                    for sample in samples])
-        integral_value = volume * function_values
-        return integral_value
+        region_integral_value = volume * function_values
+        return region_integral_value
 
 
 class ContainedRegion(MonteCarloIntegrator):
@@ -192,7 +209,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
     """
         Monte Carlo integration of a Gaussian function.
     """
-    def __init__(self, num_samples=100000, dimensions=[1,6], sigma=1.0, x0=0.0):
+    def __init__(self, num_samples, dimensions=1, sigma=1.0, x0=0.0):
         """
             Initialises parameters for Gaussian function.
             Args:
@@ -201,6 +218,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         self.sigma = sigma
         self.x0 = x0
         self.dimensions = dimensions
+        self.num_samples = num_samples
         lower_bounds = [-5 * sigma] * dimensions
         upper_bounds = [5 * sigma] * dimensions
 
@@ -213,12 +231,13 @@ class GaussianIntegrator(MonteCarloIntegrator):
             Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi))
             * exp(-(x - x0)^2 / (2 * sigma^2))
         """
-        normalization_factor = 1 / (self.sigma * np.sqrt(2 * np.pi))**self.dimensions
+        normalization_factor = 1 / (self.sigma * np.sqrt(2 * np.pi
+                                                         ))**self.dimensions
         exponent = -np.sum((x - self.x0)**2) / (2 * self.sigma**2)
         gaussian_output = normalization_factor * np.exp(exponent)
         return gaussian_output
 
-    def transform_variable(self, t):
+    def transform_variable(self):
         """
         	Computes the integral of f(x) over (-∞, ∞) using the transformation
             x = t / (1 - t^2).
@@ -226,44 +245,48 @@ class GaussianIntegrator(MonteCarloIntegrator):
                 The transformed variable.
                 The Jacobian determinant.
     	"""
+        t = self.rng.uniform(-1, 1, self.num_samples)
         x = t / (1 - t**2)
         jacobian = (1 + t**2) / (1 - t**2)**2
-        return x, jacobian
-    
-   # def gaussianplot(self):
-    #    plt.figure(figsize=(6, 6))
-     #   plt.plot(gaussian_output, 
-      #  , color='blue',
-       #     label='Inside Circle', s=1
-        #)
-        #plt.scatter(
-         #   points[0][~inside], points[1][~inside], color='red',
-          #  label='Outside Circle', s=1
-        #)
-        #plt.legend(loc='upper right')
-        #plt.xlabel("x-axis")
-        #plt.ylabel("y-axis")
-        #plt.title("Monte Carlo Sampling of a 2D Circle")
-        #plt.grid()
+        gaussian_value = self.gaussian(x)
+        adjusted_value = gaussian_value * jacobian
+        integral = np.mean(adjusted_value)
+        return integral
+
+    def plot_gaussian_1d(self):
+        """
+            Plot of 1D gaussian.
+        """
+        x_values = np.linspace(-1, 1, 500)
+        y_values = self.calculate_gaussian_1d(x_values)
+        plt.plot(x_values, y_values, label="Gaussian (1D)", color="blue")
+        plt.legend(loc='upper right')
+        plt.xlabel("x-axis")
+        plt.ylabel("y-axis")
+        plt.title("Gaussian Distribution in 1D")
+        plt.grid()
 
 if __name__ == "__main__":
     MAIN_NUM_SAMPLES = 1000000
     dimensions_list = [2, 3, 4, 5]
 
     for d in dimensions_list:
-        mc_simulator = ContainedRegion(num_samples=MAIN_NUM_SAMPLES,
-                                       dimensions=d
-                                       )
-        mc_simulator.parallel_monte_carlo()
+        mc_simulator = ContainedRegion(num_samples=MAIN_NUM_SAMPLES, dimensions=d)
+        mean_volume, variance = mc_simulator.parallel_monte_carlo()
         volume_estimate = mc_simulator.integrate()
-        if self.mpi_info['rank'] == 0:
+
+        if mc_simulator.mpi_info['rank'] == 0:
             print(f"The volume for {d}D hyperspace: {volume_estimate:.4f}")
+        
         if d == 2:
             mc_simulator.twodimensionscatter()
         elif d == 3:
             mc_simulator.threedimensionscatter()
 
-    gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
-                                                 dimensions=[1,6], sigma=1.0, x0=0.0)
-    integral_value_gaussian = gaussian_integrator.integrate()
-    print(f"The integral of Gaussian: {integral_value_gaussian:.4f}")
+    for dim in [1, 6]:
+        gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
+                                    dimensions=dim, sigma=1.0, x0=0.0)
+        integral_value = gaussian_integrator.integrate()
+        print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
+
+    gaussian_integrator.plot_gaussian_1d()
