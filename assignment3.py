@@ -47,8 +47,8 @@ class Error:
         """
         total_samples = n_a + n_b
         delta_mean = mean_b - mean_a
-        final_m2 = (var_a * (n_a - 1) + var_b * (n_b - 1) +
-                       delta_mean**2 * n_a * n_b / total_samples)
+        final_m2 = (var_a * (n_a - 1) + var_b * (n_b - 1
+                                ) + delta_mean**2 * n_a * n_b / total_samples)
         final_variance = final_m2 / (total_samples - 1)
         return final_variance
 
@@ -95,15 +95,16 @@ class MonteCarloIntegrator:
         region_volume = (2 ** self.params['dimensions']
                          ) * (count_inside / region_samples)
         total_volumes = self.mpi_info['comm'].gather(region_volume, root=0)
+        local_error = Error(1, region_volume, 0.0)
+        total_errors = self.mpi_info['comm'].gather(local_error, root=0)
 
         if self.mpi_info['rank'] == 0:
-            mean_volume = np.mean(total_volumes)
-            variance = np.var(total_volumes)
+            final_error = sum(total_errors, Error(0, 0.0, 0.0))
             print(
                 f"The {self.params['dimensions']}D Hyperspace Volume:"
-                f"  {mean_volume:.4f} ± {np.sqrt(variance):.4f}"
+                f"  {final_error.mean:.4f} ± {np.sqrt(final_error.variance):.4f}"
             )
-            return mean_volume, variance
+            return final_error.mean, final_error.variance
 
     def integrate(self):
         """
