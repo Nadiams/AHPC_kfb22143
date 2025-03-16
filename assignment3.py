@@ -191,6 +191,7 @@ class ContainedRegion(MonteCarloIntegrator):
         plt.ylabel("y-axis")
         plt.title("Monte Carlo Sampling of a 2D Circle")
         plt.grid()
+        plt.savefig("scatter_2d.png")
 
     def threedimensionscatter(self):
         """
@@ -214,6 +215,7 @@ class ContainedRegion(MonteCarloIntegrator):
         ax.set_zlabel("z-axis")
         ax.set_title("Monte Carlo Sampling of a 3D Sphere")
         ax.legend()
+        ax.savefig("scatter_3d.png")
     
     def hyperspace_region_demo(self):
         """
@@ -289,6 +291,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             plt.xlabel("x-axis")
             plt.ylabel("y-axis")
             plt.title("Gaussian Distribution in 1D")
+            plt.savefig("gaussian_1d.png")
             plt.grid()
 
     def plot_gaussian_6d(self):
@@ -304,6 +307,24 @@ class GaussianIntegrator(MonteCarloIntegrator):
             plt.ylabel("y-axis")
             plt.title("Gaussian Distribution in 6D")
             plt.grid()
+            plt.savefig("gaussian_6d.png")
+
+    def plot_transformed_gaussian(self):
+        """
+            Plot the Gaussian over all space using the transformation.
+        """
+        t_values = np.linspace(-0.99, 0.99, 500)
+        x_values = t_values / (1 - t_values**2)
+        gaussian_values = self.gaussian(x_values)
+
+        plt.figure(figsize=(8, 6))
+        plt.plot(x_values, gaussian_values, label="Transformed Gaussian", color="blue")
+        plt.xlabel("Transformed Variable x")
+        plt.ylabel("Gaussian Function Value")
+        plt.title("Transformed Gaussian Distribution")
+        plt.grid()
+        plt.legend()
+        plt.savefig("gaussian_transformed.png")
 
 if __name__ == "__main__":
     MAIN_NUM_SAMPLES = 1000000
@@ -328,7 +349,15 @@ if __name__ == "__main__":
         gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
                                     dimensions=dim, sigma=1.0, x0=0.0)
         integral_value = gaussian_integrator.integrate()
-        print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
+        if gaussian_integrator.mpi_info['rank'] == 0:
+            print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
 
     gaussian_integrator.plot_gaussian_1d()
     gaussian_integrator.plot_gaussian_6d()
+    gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES, dimensions=1, sigma=1.0, x0=0.0)
+    integral_value = gaussian_integrator.transform_variable()
+    if gaussian_integrator.mpi_info['rank'] == 0:
+        print(f"The integral of the transformed Gaussian: {integral_value:.4f}")
+    gaussian_integrator.plot_transformed_gaussian()
+    
+    MPI.Finalize()
