@@ -285,7 +285,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         if self.mpi_info['rank'] == 0:
             x_values = np.linspace(-1, 1, 500)
             y_values = self.gaussian(x_values)
-            z=np.linspace(-1, 1, 500)
+            #z=np.linspace(-1, 1, 500)
             y_error = np.sqrt(y_values)
             computed_integral = self.integrate()
             print(f"x: {x_values}")
@@ -367,9 +367,6 @@ if __name__ == "__main__":
         integral_value = gaussian_integrator.integrate()
         if gaussian_integrator.mpi_info['rank'] == 0:
             print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
-
-    gaussian_integrator.plot_gaussian_1d()
-    gaussian_integrator.plot_gaussian_6d()
     gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
                                              dimensions=1, sigma=1.0, x0=0.0
     )
@@ -377,5 +374,7 @@ if __name__ == "__main__":
     if gaussian_integrator.mpi_info['rank'] == 0:
         print(f"The integral of the transformed Gaussian: {integral_value:.4f}")
     gaussian_integrator.plot_transformed_gaussian()
+    gaussian_integrator.plot_gaussian_1d()
+    gaussian_integrator.plot_gaussian_6d()
 
     MPI.Finalize()
