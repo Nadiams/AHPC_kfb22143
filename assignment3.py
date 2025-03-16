@@ -289,9 +289,9 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
             Plot of 6D gaussian.
         """
-        x_values = np.linspace(-1, 1, 500)
-        y_values = self.gaussian(x_values)
-        plt.plot(x_values, y_values, label="Gaussian (6D)", color="blue")
+        sixd_gaussian = np.random.normal(self.x0, self.sigma, size=(500, 6))
+        plt.scatter(sixd_gaussian[:, 0], sixd_gaussian[:, 1], color="blue", 
+                    label="6D Gaussian Projection")
         plt.legend(loc='upper right')
         plt.xlabel("x-axis")
         plt.ylabel("y-axis")
