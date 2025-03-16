@@ -278,7 +278,10 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
         x_values = np.linspace(-1, 1, 500)
         y_values = self.gaussian(x_values)
-        plt.plot(x_values, y_values, label="Gaussian (1D)", color="blue")
+        y_error = np.sqrt(self.variance)
+        plt.errorbar(x_values, y_values, yerr=y_error, label="Gaussian (1D)",
+                     fmt='-o', color="blue")
+        #plt.plot(x_values, y_values, label="Gaussian (1D)", color="blue")
         plt.legend(loc='upper right')
         plt.xlabel("x-axis")
         plt.ylabel("y-axis")
