@@ -91,20 +91,29 @@ class MonteCarloIntegrator:
             self.params['bounds']['upper'],
             (region_samples, self.params['dimensions'])
         )
-        count_inside = np.sum(np.sum(samples**2, axis=1) <= 1)
-        region_volume = (2 ** self.params['dimensions']
-                         ) * (count_inside / region_samples)
-        total_volumes = self.mpi_info['comm'].gather(region_volume, root=0)
-        local_error = Error(1, region_volume, 0.0)
-        total_errors = self.mpi_info['comm'].gather(local_error, root=0)
+
+        local_error = Error(region_samples, np.mean(samples), np.var(samples))
+        stats = self.mpi_info['comm'].gather(local_error, root=0)
 
         if self.mpi_info['rank'] == 0:
-            final_error = sum(total_errors, Error(0, 0.0, 0.0))
+            total_samples = 0
+            weighted_mean = 0
+            weighted_variance = 0
+            for error in stats:
+                total_samples += error.N
+                weighted_mean += error.N * error.mean
+                weighted_variance += (error.N - 1) * error.variance
+
+            global_mean = weighted_mean / total_samples
+            global_variance = (weighted_variance + sum(
+                error.N * (error.mean - global_mean)**2 for error in stats
+            )) / (total_samples - 1)
+
             print(
                 f"The {self.params['dimensions']}D Hyperspace Volume:"
-                f"  {final_error.mean:.4f} ± {np.sqrt(final_error.variance):.4f}"
+                  f"{global_mean:.4f} ± {np.sqrt(global_variance):.4f}"
             )
-            return final_error.mean, final_error.variance
+            return global_mean, global_variance
 
     def integrate(self):
         """
