@@ -276,30 +276,34 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
             Plot of 1D gaussian.
         """
-        x_values = np.linspace(-1, 1, 500)
-        y_values = self.gaussian(x_values)
-        y_error = np.sqrt(self.variance)
-        plt.errorbar(x_values, y_values, yerr=y_error, label="Gaussian (1D)",
-                     fmt='-o', color="blue")
-        #plt.plot(x_values, y_values, label="Gaussian (1D)", color="blue")
-        plt.legend(loc='upper right')
-        plt.xlabel("x-axis")
-        plt.ylabel("y-axis")
-        plt.title("Gaussian Distribution in 1D")
-        plt.grid()
+        if self.mpi_info['rank'] == 0:
+            x_values = np.linspace(-1, 1, 500)
+            y_values = self.gaussian(x_values)
+            y_error = np.sqrt(self.variance)
+            integral_value, mean_value, variance_value, error_value = self.integrate()
+            y_error = error_value
+            plt.errorbar(x_values, y_values, yerr=y_error, label="Gaussian (1D)",
+                         fmt='-o', color="blue")
+            #plt.plot(x_values, y_values, label="Gaussian (1D)", color="blue")
+            plt.legend(loc='upper right')
+            plt.xlabel("x-axis")
+            plt.ylabel("y-axis")
+            plt.title("Gaussian Distribution in 1D")
+            plt.grid()
 
     def plot_gaussian_6d(self):
         """
             Plot of 6D gaussian.
         """
-        sixd_gaussian = np.random.normal(self.x0, self.sigma, size=(500, 6))
-        plt.scatter(sixd_gaussian[:, 0], sixd_gaussian[:, 1], color="blue", 
-                    label="6D Gaussian Projection")
-        plt.legend(loc='upper right')
-        plt.xlabel("x-axis")
-        plt.ylabel("y-axis")
-        plt.title("Gaussian Distribution in 6D")
-        plt.grid()
+        if self.mpi_info['rank'] == 0:
+            sixd_gaussian = np.random.normal(self.x0, self.sigma, size=(500, 6))
+            plt.scatter(sixd_gaussian[:, 0], sixd_gaussian[:, 1], color="blue", 
+                        label="6D Gaussian Projection")
+            plt.legend(loc='upper right')
+            plt.xlabel("x-axis")
+            plt.ylabel("y-axis")
+            plt.title("Gaussian Distribution in 6D")
+            plt.grid()
 
 if __name__ == "__main__":
     MAIN_NUM_SAMPLES = 1000000
