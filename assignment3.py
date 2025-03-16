@@ -285,6 +285,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         if self.mpi_info['rank'] == 0:
             x_values = np.linspace(-1, 1, 500)
             y_values = self.gaussian(x_values)
+            z=np.linspace(-1, 1, 500)
             y_error = np.sqrt(y_values)
             computed_integral = self.integrate()
             print(f"x: {x_values}")
