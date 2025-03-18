@@ -374,6 +374,7 @@ if __name__ == "__main__":
     if gaussian_integrator.mpi_info['rank'] == 0:
         print(f"The integral of the transformed Gaussian: {integral_value:.4f}")
     gaussian_integrator.plot_transformed_gaussian()
+
     gaussian_integrator.plot_gaussian_1d()
     gaussian_integrator.plot_gaussian_6d()
 
