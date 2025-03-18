@@ -138,6 +138,4 @@ class MonteCarloIntegrator:
 
         return float(region_integral_value)
 
-
-
     MPI.Finalize()
