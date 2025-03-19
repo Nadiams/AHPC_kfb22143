@@ -227,7 +227,8 @@ class ContainedRegion(MonteCarloIntegrator):
         points = self.sample_points()
         inner = np.sum(points**2, axis=1) <= 1
         inner_percentage = np.sum(inner) / self.num_samples
-        print(f"Percentage inside hyperspace: {inner_percentage:.4f}")
+        if self.mpi_info['rank'] == 0:
+            print(f"Percentage inside hyperspace: {inner_percentage:.4f}")
 
 class GaussianIntegrator(MonteCarloIntegrator):
     """
@@ -244,6 +245,8 @@ class GaussianIntegrator(MonteCarloIntegrator):
         self.dimensions = dimensions
         self.num_samples = num_samples
         self.variance = 0
+        self.rank = MPI.COMM_WORLD.Get_rank()
+        self.size = MPI.COMM_WORLD.Get_size()
         lower_bounds = [-5 * sigma] * dimensions
         upper_bounds = [5 * sigma] * dimensions
 
@@ -270,27 +273,31 @@ class GaussianIntegrator(MonteCarloIntegrator):
                 The transformed variable.
                 The Jacobian determinant.
     	"""
-        t = self.rng.uniform(-1, 1, self.num_samples)
-        x = t / (1 - t**2)
-        jacobian = (1 + t**2) / (1 - t**2)**2
-        gaussian_value = self.gaussian(x)
-        adjusted_value = gaussian_value * jacobian
-        integral = np.mean(adjusted_value)
-        return integral
+        if self.mpi_info['rank'] == 0:
+            t = np.linspace(-0.99, 0.99, self.num_samples)
+            x = t / (1 - t**2)
+            jacobian = (1 + t**2) / (1 - t**2)**2
+            gaussian_value = self.gaussian(x)
+            adjusted_value = gaussian_value * jacobian
+            integral = np.mean(adjusted_value)
+            return x, adjusted_value, integral
+        return None, None, None
 
     def plot_gaussian_1d(self):
         """
             Plot of 1D gaussian.
         """
         if self.mpi_info['rank'] == 0:
+            plt.figure()
             x_values = np.linspace(-1, 1, 500)
-            y_values = np.array([self.gaussian(x) for x in x_values])-
+            y_values = np.array([self.gaussian(x) for x in x_values])
             #z=np.linspace(-1, 1, 500)
-            y_error = np.sqrt(y_values)
+            #y_error = np.sqrt(y_values)
+            y_std = np.std(y_values) / np.sqrt(len(y_values))
             computed_integral = self.integrate()
             #print(f"x: {x_values}")
             #print(f"y: {y_values}")
-            print(f"yerr: {y_error}")
+            #print(f"yerr: {y_std}")
             print(f"Integral: {computed_integral}")
             if len(x_values) != len(y_values):
                 print("Mismatch in lengths: x has", len(x_values), "and y has", len(y_values))
@@ -299,7 +306,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
                 x_values,
                 y_values,
                 xerr=None,
-                yerr=y_error,
+                yerr=y_std,
                 label="Gaussian (1D)",
                 fmt='o',
                 color="blue"
@@ -318,6 +325,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             Plot of 6D gaussian.
         """
         if self.mpi_info['rank'] == 0:
+            plt.figure()
             sixd_gaussian = np.random.normal(self.x0, self.sigma, size=(500, 6))
             plt.scatter(sixd_gaussian[:, 0], sixd_gaussian[:, 1], color="blue",
                         label="6D Gaussian Projection")
@@ -333,12 +341,15 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
             Plot the Gaussian over all space using the transformation.
         """
-        t_values = np.linspace(-0.99, 0.99, 500)
-        x_values = t_values / (1 - t_values**2)
-        gaussian_values = np.array([self.gaussian(x) for x in x_values])
+        if self.mpi_info['rank'] == 0:
+            x_values, transformed_values, integral = self.transform_variable()
+        #t_values = np.linspace(-0.99, 0.99, 500)
+        #x_values = t_values / (1 - t_values**2)
+        #gaussian_values = np.array([self.gaussian(x) for x in x_values])
 
         plt.figure(figsize=(8, 6))
-        plt.plot(x_values, gaussian_values, label="Transformed Gaussian", color="blue")
+        plt.scatter(x_values, transformed_values, label="Transformed Gaussian", color="blue", s=5)
+        plt.axhline(y=integral, color='red', linestyle='dashed', label=f"Mean Integral: {integral:.4f}")
         plt.xlabel("Transformed Variable x")
         plt.ylabel("Gaussian Function Value")
         plt.xlim(-6.0, 6.0)
@@ -372,15 +383,17 @@ if __name__ == "__main__":
         integral_value = gaussian_integrator.integrate()
         if gaussian_integrator.mpi_info['rank'] == 0:
             print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
-    gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
-                                             dimensions=1, sigma=1.0, x0=0.0
+    gaussian_integrator = GaussianIntegrator(
+        num_samples=MAIN_NUM_SAMPLES, dimensions=1, sigma=1.0, x0=0.0
     )
-    integral_value = gaussian_integrator.transform_variable()
+    _, _, transformed_integral = gaussian_integrator.transform_variable()
+    
     if gaussian_integrator.mpi_info['rank'] == 0:
-        print(f"The integral of the transformed Gaussian: {integral_value:.4f}")
-    gaussian_integrator.plot_transformed_gaussian()
+        print(f"The integral of the transformed Gaussian: {transformed_integral:.4f}")
 
-    gaussian_integrator.plot_gaussian_1d()
-    gaussian_integrator.plot_gaussian_6d()
+    if gaussian_integrator.mpi_info['rank'] == 0:
+        gaussian_integrator.plot_transformed_gaussian()
+        gaussian_integrator.plot_gaussian_1d()
+        gaussian_integrator.plot_gaussian_6d()
 
     MPI.Finalize()
