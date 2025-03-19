@@ -258,7 +258,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
         normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi))
                                 )**self.dimensions
-        exponent = -np.sum((x - self.x0)**2) / (2 * self.sigma**2)
+        exponent = -np.sum((x - self.x0) ** 2, axis=-1) / (2 * self.sigma ** 2)
         gaussian_output = normalisation_factor * np.exp(exponent)
         return gaussian_output
 
@@ -284,14 +284,16 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
         if self.mpi_info['rank'] == 0:
             x_values = np.linspace(-1, 1, 500)
-            y_values = self.gaussian(x_values)
+            y_values = np.array([self.gaussian(x) for x in x_values])-
             #z=np.linspace(-1, 1, 500)
             y_error = np.sqrt(y_values)
             computed_integral = self.integrate()
-            print(f"x: {x_values}")
-            print(f"y: {y_values}")
+            #print(f"x: {x_values}")
+            #print(f"y: {y_values}")
             print(f"yerr: {y_error}")
             print(f"Integral: {computed_integral}")
+            if len(x_values) != len(y_values):
+                print("Mismatch in lengths: x has", len(x_values), "and y has", len(y_values))
             #y_error = error_value
             plt.errorbar(
                 x_values,
@@ -306,6 +308,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             plt.legend(loc='upper right')
             plt.xlabel("x-axis")
             plt.ylabel("y-axis")
+            plt.xlim(-6.0, 6.0)
             plt.title("Gaussian Distribution in 1D")
             plt.savefig("gaussian_1d.png")
             plt.grid()
@@ -321,6 +324,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             plt.legend(loc='upper right')
             plt.xlabel("x-axis")
             plt.ylabel("y-axis")
+            plt.xlim(-6.0, 6.0)
             plt.title("Gaussian Distribution in 6D")
             plt.grid()
             plt.savefig("gaussian_6d.png")
@@ -331,12 +335,13 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
         t_values = np.linspace(-0.99, 0.99, 500)
         x_values = t_values / (1 - t_values**2)
-        gaussian_values = self.gaussian(x_values)
+        gaussian_values = np.array([self.gaussian(x) for x in x_values])
 
         plt.figure(figsize=(8, 6))
         plt.plot(x_values, gaussian_values, label="Transformed Gaussian", color="blue")
         plt.xlabel("Transformed Variable x")
         plt.ylabel("Gaussian Function Value")
+        plt.xlim(-6.0, 6.0)
         plt.title("Transformed Gaussian Distribution")
         plt.grid()
         plt.legend()
