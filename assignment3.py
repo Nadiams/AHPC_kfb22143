@@ -35,7 +35,7 @@ class Error:
         temporary = copy.deepcopy(self)
         temporary.n_samples+= other.n_samples
         temporary.mean = ( self.n_samples* self.mean + other.n_samples* other.mean
-                          ) / temporary.N
+                          ) / temporary.n_samples
         temporary.variance = self.parallel_variance(
                     (self.n_samples, self.mean, self.variance),
                     (other.n_samples, other.mean, other.variance)
@@ -55,68 +55,41 @@ class Error:
         )
         return final_m2 / (total_samples - 1)
 
-class MonteCarloIntegrator:
+class MonteCarloIntegrator(Error):
     """
 	To initialise the Monte Carlo class.
 	"""
-    def __init__(self, function, lower_bounds, upper_bounds, num_samples=100000):
+    def __init__(self, function, lower_bounds, upper_bounds, num_samples=1000000):
         """
 		Initialises parameters.
 		Args:
 			function: The function to integrate.
 			lower_bounds: List of lower bounds for each dimension.
 			upper_bounds: List of upper bounds for each dimension.
+
 			num_samples: Number of random samples to take.
 		"""
+        lower_bounds = np.array(lower_bounds, dtype=float)
+        upper_bounds = np.array(upper_bounds, dtype=float)
+
         self.params = {
             'function': function,
             'num_samples': num_samples,
             'dimensions': len(lower_bounds),
-            'bounds': {
-                'lower': np.array(lower_bounds, dtype=float),
-                'upper': np.array(upper_bounds, dtype=float)
-            }
+            'bounds': {'lower': lower_bounds, 'upper': upper_bounds},
+            'volume': np.prod(upper_bounds - lower_bounds)
         }
-        self.rng = default_rng(SeedSequence())
         self.mpi_info = {
             'comm': MPI.COMM_WORLD,
             'rank': MPI.COMM_WORLD.Get_rank(),
             'size': MPI.COMM_WORLD.Get_size()
         }
 
+        self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
+
+        super().__init__(num_samples, mean=0, var=0)
+
     def parallel_monte_carlo(self):
-        """
-		Function to use MPI Parallelism.
-		"""
-        region_samples = self.params['num_samples'] // self.mpi_info['size']
-        samples = self.rng.uniform(
-            self.params['bounds']['lower'],
-            self.params['bounds']['upper'],
-            (region_samples, self.params['dimensions'])
-        )
-
-        local_error = Error(region_samples, np.mean(samples), np.var(samples))
-        stats = self.mpi_info['comm'].gather(local_error, root=0)
-
-        if self.mpi_info['rank'] == 0:
-            total_samples = sum(error.n_samples for error in stats)
-            weighted_mean = sum(error.n_samples * error.mean for error in stats)
-            weighted_variance = sum((error.n_samples - 1) * error.variance for
-                                    error in stats
-            )
-
-            global_mean = weighted_mean / total_samples
-            global_variance = (weighted_variance + sum(
-                error.n_samples * (error.mean - global_mean)**2 for error in stats
-                )) / (total_samples - 1)
-
-            print(f"The {self.params['dimensions']}D Hyperspace Volume:"
-                  f"{global_mean:.4f} ± {np.sqrt(global_variance):.4f}")
-            return global_mean, global_variance
-
-        return None, None
-
-    def integrate(self):
         """
     		Performs the Monte Carlo integration to estimate the integral in
             parallel across multiple processors.
@@ -129,71 +102,139 @@ class MonteCarloIntegrator:
             self.params['bounds']['upper'],
             (region_samples, self.params['dimensions'])
         )
-        volume = np.prod(self.params['bounds']['upper'] -
-                         self.params['bounds']['lower'])
-        function_values = np.mean([self.params['function'](sample)
-                                   for sample in samples])
-        region_integral_value = volume * function_values
 
-        return float(region_integral_value)
+        function_values = np.array([self.params['function'](x) for x in samples])
+        local_mean = np.mean(function_values)
+        local_variance = np.var(function_values, ddof=1)
 
+        local_integral = self.params['volume'] * local_mean
+
+        global_integral = self.mpi_info['comm'].reduce(local_integral, op=MPI.SUM, root=0)
+        global_variance = self.mpi_info['comm'].reduce(local_variance, op=MPI.SUM, root=0)
+
+        if self.mpi_info['rank'] == 0:
+            self.mean = global_integral
+            self.variance = global_variance / self.mpi_info['size']
+            return global_integral, global_variance
+        return None, None
 
 class ContainedRegion(MonteCarloIntegrator):
     """
         This class inherits from previous class to compute the volume (region)
         of a hyperspace using Monte Carlo.
     """
-    def __init__(self, num_samples=10000, dimensions=5, seed=12345):
+    def __init__(self, num_samples=100000, dimensions=5, seed=12345):
         """
             Initialises parameters.
             Args:
                 num_samples, dimensions, seed.
         """
+
+        super().__init__(
+            function=self.inside_hyperspace,
+            lower_bounds=[-1]*dimensions,
+            upper_bounds=[1]*dimensions,
+            num_samples=num_samples
+        )
+
         self.num_samples = num_samples
         self.dimensions = dimensions
         self.seed = seed
-        self.rng = default_rng(SeedSequence(seed))
+        #self.mpi_info = {
+         #   'comm': MPI.COMM_WORLD,
+          #  'rank': MPI.COMM_WORLD.Get_rank(),
+           # 'size': MPI.COMM_WORLD.Get_size()
+        #}
+        #self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
 
-        lower_bounds = [-1] * dimensions
-        upper_bounds = [1] * dimensions
+        #lower_bounds = [-1] * dimensions
+        #upper_bounds = [1] * dimensions
 
-        def inside_hyperspace(point):
-            return 1 if np.sum(point**2) <= 1 else 0
-
-        super().__init__(
-            inside_hyperspace, lower_bounds, upper_bounds, num_samples
-        )
+    def inside_hyperspace(self, point):
+        """
+            Points inside hyperspace.
+        """
+        return 1 if np.sum(point**2) <= 1 else 0
 
     def sample_points(self):
         """
             To generate random points within the unit cube.
         """
         return self.rng.uniform(
-                                -1, 1, size=(self.num_samples, self.dimensions)
+            -1, 1, size=(self.num_samples, self.dimensions)
         )
+
+    def calculate_hyperspace_volume(self):
+        """
+            Estimates the volume of the hyperspace in d, dimensions using the
+            Monte Carlo integrator.
+            Returns:
+                Estimated volume.
+        """
+        local_volume, local_variance = self.parallel_monte_carlo()
+        if self.mpi_info['rank'] == 0:
+            standard_error = np.sqrt(local_variance / self.num_samples)
+            return local_volume * (2 ** self.dimensions), standard_error
+        return 0.0, 0.0
+
+    def hyperspace_region_demo(self):
+        """
+            Hyperspace as a percentage of inner area to show the region.
+            Returns:
+                inner_percentage,
+                f-string.
+        """
+        points = self.sample_points()
+        inner = np.sum(points**2, axis=1) <= 1
+        inner_percentage = np.sum(inner) / self.num_samples
+        if self.mpi_info['rank'] == 0:
+            print(f"Percentage inside hyperspace: {inner_percentage:.4f}")
+
+    def  plot_points_in_hyperspace(self):
+        """
+            Function to compute the points inside and outside the hyperspace.
+            Returns:
+                points_inside,
+                points_outside.
+        """
+        points_inside = []
+        points_outside = []
+
+        for _ in range(self.num_samples):
+            point = np.random.uniform(-1, 1, self.dimensions)
+            if np.linalg.norm(point) <= 1:
+                points_inside.append(point)
+            else:
+                points_outside.append(point)
+
+        points_inside = np.array(points_inside)
+        points_outside = np.array(points_outside)
+
+        return points_inside, points_outside
 
     def twodimensionscatter(self):
         """
             Visualise sampled points in 2D.
         """
-        points = self.sample_points()
-        inside = np.sum(points**2, axis=1) <= 1
+        if self.mpi_info['rank'] == 0:
+            points = self.sample_points()
+            inside = np.sum(points**2, axis=1) <= 1
 
-        plt.figure(figsize=(6, 6))
-        plt.scatter(
-        points[inside, 0], points[inside, 1], color='blue',
-        label='Inside Circle', s=1
-        )
-        plt.scatter(
-        points[~inside, 0], points[~inside, 1], color='red',
-        label='Outside Circle', s=1
-        )
-        plt.legend(loc='upper right')
-        plt.xlabel("x-axis")
-        plt.ylabel("y-axis")
-        plt.title("Monte Carlo Sampling of a 2D Circle")
-        plt.grid()
-        plt.savefig("scatter_2d.png")
+            plt.figure(figsize=(6, 6))
+            plt.scatter(
+                points[inside, 0], points[inside, 1], color='blue',
+            label='Inside Circle', s=1
+            )
+            plt.scatter(
+                points[~inside, 0], points[~inside, 1], color='red',
+                label='Outside Circle', s=1
+            )
+            plt.legend(loc='upper right')
+            plt.xlabel("x-axis")
+            plt.ylabel("y-axis")
+            plt.title("Monte Carlo Sampling of a 2D Circle")
+            plt.grid()
+            plt.savefig("scatter_2d.png")
 
     def threedimensionscatter(self):
         """
@@ -219,16 +260,6 @@ class ContainedRegion(MonteCarloIntegrator):
         ax.set_title("Monte Carlo Sampling of a 3D Sphere")
         ax.legend()
         plt.savefig("scatter_3d.png")
-
-    def hyperspace_region_demo(self):
-        """
-            Hyperspace as a percentage of inner area to show the region.
-        """
-        points = self.sample_points()
-        inner = np.sum(points**2, axis=1) <= 1
-        inner_percentage = np.sum(inner) / self.num_samples
-        if self.mpi_info['rank'] == 0:
-            print(f"Percentage inside hyperspace: {inner_percentage:.4f}")
 
 class GaussianIntegrator(MonteCarloIntegrator):
     """
@@ -265,23 +296,67 @@ class GaussianIntegrator(MonteCarloIntegrator):
         gaussian_output = normalisation_factor * np.exp(exponent)
         return gaussian_output
 
+    def transform(self, x, y=None, z=None):
+        """
+        Transformation to map x, y, z to t1, t2, t3 using the formula:
+        t1 = x / (1 + x^2), t2 = y / (1 + y^2), t3 = z / (1 + z^2).
+        """
+        t1 = x / (1 + x**2)
+        if y is None and z is None:
+            return t1
+        t2 = y / (1 + y**2)
+        if z is None:
+            return t1, t2
+        t3 = z / (1 + z**2)
+        return t1, t2, t3
+
+    def gaussian_transformed(self, t1, t2=None, t3=None):
+        """
+            Inverse transform: x = t1 / (1 - t1^2), y = t2 / (1 - t2^2),
+            z = t3 / (1 - t3^2).
+        """
+        x = t1 / (1 - t1**2)
+        if t2 is None and t3 is None:
+            return self.gaussian(x)
+        y = t2 / (1 - t2**2)
+        if t3 is None:
+            return self.gaussian(np.stack([x, y], axis=-1))
+        z = t3 / (1 - t3**2)
+        return self.gaussian(np.stack([x, y, z], axis=-1))
+
     def transform_variable(self):
         """
-        	Computes the integral of f(x) over (-∞, ∞) using the transformation
+            Computes the integral of f(x) over (-∞, ∞) using the transformation
             x = t / (1 - t^2).
             Returns:
                 The transformed variable.
                 The Jacobian determinant.
-    	"""
-        if self.mpi_info['rank'] == 0:
-            t = np.linspace(-0.99, 0.99, self.num_samples)
-            x = t / (1 - t**2)
+        """
+        t = np.linspace(-1, 1, self.num_samples) if self.rank == 0 else None
+        transformed_x = None
+        transformed_adjusted_value = None
+        if self.rank == 0:
+            t = np.clip(t, -1, 1)
+            transformed_x = t / (1 - t**2)
             jacobian = (1 + t**2) / (1 - t**2)**2
-            gaussian_value = self.gaussian(x)
-            adjusted_value = gaussian_value * jacobian
-            integral = np.mean(adjusted_value)
-            return x, adjusted_value, integral
-        return None, None, None
+            gaussian_value = self.gaussian_transformed(transformed_x)
+            transformed_adjusted_value = gaussian_value * jacobian
+            transformed_integral = np.mean(transformed_adjusted_value)
+            print(f"t: {t}")
+            print(f"Transformed x: {transformed_x}")
+            print(f"Jacobian: {jacobian}")
+            print(f"Gaussian Value: {gaussian_value}")
+            print(f"Adjusted Value: {transformed_adjusted_value}")
+            print(f"Transformed Integral: {transformed_integral}")
+        else:
+            transformed_integral = None
+
+        transformed_x = MPI.COMM_WORLD.bcast(transformed_x, root=0)
+        transformed_adjusted_value = MPI.COMM_WORLD.bcast(
+            transformed_adjusted_value, root=0
+        )
+        transformed_integral = MPI.COMM_WORLD.bcast(transformed_integral, root=0)
+        return transformed_x, transformed_adjusted_value, transformed_integral
 
     def plot_gaussian_1d(self):
         """
@@ -294,7 +369,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             #z=np.linspace(-1, 1, 500)
             #y_error = np.sqrt(y_values)
             y_std = np.std(y_values) / np.sqrt(len(y_values))
-            computed_integral = self.integrate()
+            computed_integral, _ = self.parallel_monte_carlo()
             #print(f"x: {x_values}")
             #print(f"y: {y_values}")
             #print(f"yerr: {y_std}")
@@ -341,59 +416,62 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
             Plot the Gaussian over all space using the transformation.
         """
-        if self.mpi_info['rank'] == 0:
+        if self.rank == 0:
             x_values, transformed_values, integral = self.transform_variable()
-        #t_values = np.linspace(-0.99, 0.99, 500)
-        #x_values = t_values / (1 - t_values**2)
-        #gaussian_values = np.array([self.gaussian(x) for x in x_values])
 
-        plt.figure(figsize=(8, 6))
-        plt.scatter(x_values, transformed_values, label="Transformed Gaussian", color="blue", s=5)
-        plt.axhline(y=integral, color='red', linestyle='dashed', label=f"Mean Integral: {integral:.4f}")
-        plt.xlabel("Transformed Variable x")
-        plt.ylabel("Gaussian Function Value")
-        plt.xlim(-6.0, 6.0)
-        plt.title("Transformed Gaussian Distribution")
-        plt.grid()
-        plt.legend()
-        plt.savefig("gaussian_transformed.png")
+            plt.figure(figsize=(8, 6))
+            plt.scatter(x_values, transformed_values,
+                    label="Transformed Gaussian", color="blue", s=5
+            )
+            plt.axhline(y=integral, color='red', linestyle='dashed',
+                    label=f"Mean Integral: {integral:.4f}"
+            )
+            plt.xlabel("Transformed Variable x")
+            plt.ylabel("Gaussian Function Value")
+            plt.xlim(-6.0, 6.0)
+            plt.title("Transformed Gaussian Distribution")
+            plt.grid()
+            plt.legend()
+            plt.savefig("gaussian_transformed.png")
 
 if __name__ == "__main__":
-    MAIN_NUM_SAMPLES = 1000000
-    dimensions_list = [2, 3, 4, 5]
+    rank = MPI.COMM_WORLD.Get_rank()
+    if rank == 0:
+        MAIN_NUM_SAMPLES = 1000000
+        dimensions_list = [2, 3, 4, 5]
 
-    for d in dimensions_list:
-        mc_simulator = ContainedRegion(num_samples=MAIN_NUM_SAMPLES, dimensions=d)
-        mean_volume, variance = mc_simulator.parallel_monte_carlo()
-        volume_estimate = mc_simulator.integrate()
+        for d in dimensions_list:
+            mc_simulator = ContainedRegion(num_samples=MAIN_NUM_SAMPLES, dimensions=d)
+            volume_estimate, _ = mc_simulator.parallel_monte_carlo()
 
-        if mc_simulator.mpi_info['rank'] == 0:
-            print(f"The volume for {d}D hyperspace: {volume_estimate:.4f}")
+            if mc_simulator.mpi_info['rank'] == 0:
+                print(f"The volume for {d}D hyperspace: {volume_estimate:.4f}")
 
-        if d == 2:
-            mc_simulator.twodimensionscatter()
-        elif d == 3:
-            mc_simulator.threedimensionscatter()
-        else:
-            mc_simulator.hyperspace_region_demo()
+                if d == 2:
+                    mc_simulator.twodimensionscatter()
+                elif d == 3:
+                    mc_simulator.threedimensionscatter()
+                else:
+                    mc_simulator.hyperspace_region_demo()
 
-    for dim in [1, 6]:
-        gaussian_integrator = GaussianIntegrator(num_samples=MAIN_NUM_SAMPLES,
-                                    dimensions=dim, sigma=1.0, x0=0.0)
-        integral_value = gaussian_integrator.integrate()
-        if gaussian_integrator.mpi_info['rank'] == 0:
-            print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
-    gaussian_integrator = GaussianIntegrator(
-        num_samples=MAIN_NUM_SAMPLES, dimensions=1, sigma=1.0, x0=0.0
-    )
-    _, _, transformed_integral = gaussian_integrator.transform_variable()
-    
-    if gaussian_integrator.mpi_info['rank'] == 0:
-        print(f"The integral of the transformed Gaussian: {transformed_integral:.4f}")
+        for dim in [1, 6]:
+            gaussian_integrator = GaussianIntegrator(
+                num_samples=MAIN_NUM_SAMPLES, dimensions=dim, sigma=1.0, x0=0.0
+            )
+            integral_value, _ = gaussian_integrator.parallel_monte_carlo()
 
-    if gaussian_integrator.mpi_info['rank'] == 0:
-        gaussian_integrator.plot_transformed_gaussian()
-        gaussian_integrator.plot_gaussian_1d()
-        gaussian_integrator.plot_gaussian_6d()
+            if gaussian_integrator.mpi_info['rank'] == 0:
+                print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
+            x_transformed, adjusted_value, transformed_integral = (
+                gaussian_integrator.transform_variable()
+            )
+
+            if gaussian_integrator.mpi_info['rank'] == 0:
+                print(f"The integral of the transformed Gaussian:"
+                      f"{transformed_integral:.4f}"
+                )
+                gaussian_integrator.plot_transformed_gaussian()
+                gaussian_integrator.plot_gaussian_1d()
+                gaussian_integrator.plot_gaussian_6d()
 
     MPI.Finalize()
