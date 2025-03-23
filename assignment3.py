@@ -145,7 +145,7 @@ class ContainedRegion(MonteCarloIntegrator):
           #  'rank': MPI.COMM_WORLD.Get_rank(),
            # 'size': MPI.COMM_WORLD.Get_size()
         #}
-        #self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
+        self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
 
         #lower_bounds = [-1] * dimensions
         #upper_bounds = [1] * dimensions
