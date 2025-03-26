@@ -301,6 +301,15 @@ class GaussianIntegrator(MonteCarloIntegrator):
             gaussian_output = normalisation_factor * np.exp(exponent)
             return gaussian_output
 
+        elif self.method == 'transformation':
+            transformed_x = x / (1 - x**2)
+            dx_dt = (1 + x**2) / (1 - x**2)**2
+            normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi
+                                                        )))**self.dimensions
+            exponent = -np.sum((transformed_x - self.x0) ** 2, axis=-1
+                               ) / (2 * self.sigma ** 2)
+            gaussian_value = normalisation_factor * np.exp(exponent)
+            return gaussian_value * np.prod(dx_dt, axis=-1)
 
     def plot_gaussian_1d(self):
         """
