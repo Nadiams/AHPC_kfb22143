@@ -265,7 +265,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
     """
         Monte Carlo integration of a Gaussian function.
     """
-    def __init__(self, num_samples, dimensions=1, sigma=1.0, x0=0.0):
+    def __init__(self, num_samples, dimensions=1, sigma=1.0, x0=0.0, method='no_sub'):
         """
             Initialises parameters for Gaussian function.
             Args:
@@ -276,10 +276,14 @@ class GaussianIntegrator(MonteCarloIntegrator):
         self.dimensions = dimensions
         self.num_samples = num_samples
         self.variance = 0
-        self.rank = MPI.COMM_WORLD.Get_rank()
-        self.size = MPI.COMM_WORLD.Get_size()
-        lower_bounds = [-5 * sigma] * dimensions
-        upper_bounds = [5 * sigma] * dimensions
+        self.method = method
+
+        if method == 'no_sub':
+            lower_bounds = [-5 * sigma] * dimensions
+            upper_bounds = [5 * sigma] * dimensions
+        elif method == 'sub':
+            lower_bounds = [-1] * dimensions
+            upper_bounds = [1] * dimensions
 
         super().__init__(
             self.gaussian, lower_bounds, upper_bounds, num_samples
@@ -290,11 +294,12 @@ class GaussianIntegrator(MonteCarloIntegrator):
             Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi))
             * exp(-(x - x0)^2 / (2 * sigma^2))
         """
-        normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi))
+        if self.method == 'no_sub':
+            normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi))
                                 )**self.dimensions
-        exponent = -np.sum((x - self.x0) ** 2, axis=-1) / (2 * self.sigma ** 2)
-        gaussian_output = normalisation_factor * np.exp(exponent)
-        return gaussian_output
+            exponent = -np.sum((x - self.x0) ** 2, axis=-1) / (2 * self.sigma ** 2)
+            gaussian_output = normalisation_factor * np.exp(exponent)
+            return gaussian_output
 
 
     def plot_gaussian_1d(self):
