@@ -427,4 +427,12 @@ if __name__ == "__main__":
                 gaussian_integrator.plot_gaussian_1d()
                 gaussian_integrator.plot_gaussian_6d()
 
+integrator = GaussianIntegrator(MAIN_NUM_SAMPLES, dimensions=6, sigma=1.0, x0=0.0, method='non-sub')
+integral, variance = integrator.parallel_monte_carlo()
+if MPI.COMM_WORLD.Get_rank() == 0:
+    print(f"6D Integral: {integral:.4f}, Variance: {variance:.4f}")
+integrator = GaussianIntegrator(MAIN_NUM_SAMPLES, dimensions=1, sigma=1.0, x0=0.0, method='sub')
+integral, variance = integrator.parallel_monte_carlo()
+if MPI.COMM_WORLD.Get_rank() == 0:
+    print(f"1D Integral over all space: {integral:.4f}, Variance: {variance:.4f}")
     MPI.Finalize()
