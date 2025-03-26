@@ -316,20 +316,22 @@ class GaussianIntegrator(MonteCarloIntegrator):
             Plot of 1D gaussian.
         """
         if self.mpi_info['rank'] == 0:
-            plt.figure()
+            plt.figure(figsize=(8, 6))
             x_values = np.linspace(-5, 5, 500)
-            y_values = np.array([self.gaussian(x) for x in x_values])
-            #z=np.linspace(-1, 1, 500)
-            #y_error = np.sqrt(y_values)
-            y_std = np.std(y_values) / np.sqrt(len(y_values))
-            computed_integral, _ = self.parallel_monte_carlo()
-            #print(f"x: {x_values}")
-            #print(f"y: {y_values}")
-            #print(f"yerr: {y_std}")
-            print(f"Integral: {computed_integral}")
-            if len(x_values) != len(y_values):
-                print("Mismatch in lengths: x has", len(x_values), "and y has", len(y_values))
-            #y_error = error_value
+            y_values = self.gaussian(x_values[:, np.newaxis])
+            plt.plot(x_values, y_values, label="Gaussian Function", color="blue", 
+                     linewidth=2)
+            samples = np.random.uniform(-5, 5, size=(self.num_samples, 1))
+            sample_values = self.gaussian(samples)
+            plt.scatter(samples, sample_values, color="red", s=5, alpha=0.5, 
+                        label="Monte Carlo Samples")
+            plt.legend()
+            plt.xlabel("x")
+            plt.ylabel("Gaussian f(x)")
+            plt.title("Gaussian Function with Monte Carlo Samples (Transformation Method)")
+            plt.grid()
+            plt.savefig("gaussian_1d_transformed.png")
+
             plt.errorbar(
                 x_values,
                 y_values,
@@ -339,14 +341,6 @@ class GaussianIntegrator(MonteCarloIntegrator):
                 fmt='o',
                 color="blue"
             )
-            plt.plot(x_values, y_values, label="Gaussian (1D)", color="blue")
-            plt.legend(loc='upper right')
-            plt.xlabel("x-axis")
-            plt.ylabel("y-axis")
-            plt.xlim(-5.0, 5.0)
-            plt.title("Gaussian Distribution in 1D")
-            plt.savefig("gaussian_1d.png")
-            plt.grid()
 
     def plot_gaussian_6d(self):
         """
