@@ -296,67 +296,6 @@ class GaussianIntegrator(MonteCarloIntegrator):
         gaussian_output = normalisation_factor * np.exp(exponent)
         return gaussian_output
 
-    def transform(self, x, y=None, z=None):
-        """
-        Transformation to map x, y, z to t1, t2, t3 using the formula:
-        t1 = x / (1 + x^2), t2 = y / (1 + y^2), t3 = z / (1 + z^2).
-        """
-        t1 = x / (1 + x**2)
-        if y is None and z is None:
-            return t1
-        t2 = y / (1 + y**2)
-        if z is None:
-            return t1, t2
-        t3 = z / (1 + z**2)
-        return t1, t2, t3
-
-    def gaussian_transformed(self, t1, t2=None, t3=None):
-        """
-            Inverse transform: x = t1 / (1 - t1^2), y = t2 / (1 - t2^2),
-            z = t3 / (1 - t3^2).
-        """
-        x = t1 / (1 - t1**2)
-        if t2 is None and t3 is None:
-            return self.gaussian(x)
-        y = t2 / (1 - t2**2)
-        if t3 is None:
-            return self.gaussian(np.stack([x, y], axis=-1))
-        z = t3 / (1 - t3**2)
-        return self.gaussian(np.stack([x, y, z], axis=-1))
-
-    def transform_variable(self):
-        """
-            Computes the integral of f(x) over (-∞, ∞) using the transformation
-            x = t / (1 - t^2).
-            Returns:
-                The transformed variable.
-                The Jacobian determinant.
-        """
-        t = np.linspace(-1, 1, self.num_samples) if self.rank == 0 else None
-        transformed_x = None
-        transformed_adjusted_value = None
-        if self.rank == 0:
-            t = np.clip(t, -1, 1)
-            transformed_x = t / (1 - t**2)
-            jacobian = (1 + t**2) / (1 - t**2)**2
-            gaussian_value = self.gaussian_transformed(transformed_x)
-            transformed_adjusted_value = gaussian_value * jacobian
-            transformed_integral = np.mean(transformed_adjusted_value)
-            print(f"t: {t}")
-            print(f"Transformed x: {transformed_x}")
-            print(f"Jacobian: {jacobian}")
-            print(f"Gaussian Value: {gaussian_value}")
-            print(f"Adjusted Value: {transformed_adjusted_value}")
-            print(f"Transformed Integral: {transformed_integral}")
-        else:
-            transformed_integral = None
-
-        transformed_x = MPI.COMM_WORLD.bcast(transformed_x, root=0)
-        transformed_adjusted_value = MPI.COMM_WORLD.bcast(
-            transformed_adjusted_value, root=0
-        )
-        transformed_integral = MPI.COMM_WORLD.bcast(transformed_integral, root=0)
-        return transformed_x, transformed_adjusted_value, transformed_integral
 
     def plot_gaussian_1d(self):
         """
@@ -364,7 +303,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
         if self.mpi_info['rank'] == 0:
             plt.figure()
-            x_values = np.linspace(-1, 1, 500)
+            x_values = np.linspace(-5, 5, 500)
             y_values = np.array([self.gaussian(x) for x in x_values])
             #z=np.linspace(-1, 1, 500)
             #y_error = np.sqrt(y_values)
@@ -390,7 +329,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             plt.legend(loc='upper right')
             plt.xlabel("x-axis")
             plt.ylabel("y-axis")
-            plt.xlim(-6.0, 6.0)
+            plt.xlim(-5.0, 5.0)
             plt.title("Gaussian Distribution in 1D")
             plt.savefig("gaussian_1d.png")
             plt.grid()
