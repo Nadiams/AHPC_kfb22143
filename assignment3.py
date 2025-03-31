@@ -247,15 +247,15 @@ class ContainedRegion(MonteCarloIntegrator):
                 combined_error += worker_error
             final_volume = combined_error.mean * (2 ** self.dimensions)
             standard_error = combined_error.compute_error()
-    
+
             print("\n==== Monte Carlo Estimation of Hypersphere Volume =====")
             print(f"Estimated Volume: {final_volume:.6f}")
             print(f"Estimated Variance: {combined_error.variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
             print("========================================================\n")
-    
+
             return final_volume, standard_error
-    
+
         return None, None
 
     def  plot_points_in_hyperspace(self):
@@ -336,7 +336,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         a 1D, 6D gaussians and a gaussian over all space which uses 
         substitution.
     """
-    def __init__(self, num_samples, dimensions=1, sigma=1.0, 
+    def __init__(self, num_samples, dimensions=1, sigma=1.0,
                  x0=0.0, seed=12345, method='no_sub'):
         """
             Initialises parameters for Gaussian function.
@@ -436,10 +436,10 @@ class GaussianIntegrator(MonteCarloIntegrator):
             x_values = self.rng.uniform(-5, 5, 500)
             y_values = self.gaussian(x_values[:, np.newaxis])
             plt.scatter(
-                x_values, 
-                y_values, 
-                label="Gaussian Function", 
-                color="black", 
+                x_values,
+                y_values,
+                label="Gaussian Function",
+                color="black",
                 linewidth=2
             )
             y_errors = np.sqrt(y_values)
@@ -468,7 +468,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
 
 if __name__ == "__main__":
     rank = MPI.COMM_WORLD.Get_rank()
-    
+
     if rank == 0:
         MAIN_NUM_SAMPLES = 1000000
         dimensions_list = [2, 3, 4, 5]
@@ -496,10 +496,10 @@ if __name__ == "__main__":
                     gaussian_integrator.plot_sub()
 
     integrator = GaussianIntegrator(
-        num_samples=1000, 
-        dimensions=6, 
-        sigma=1.0, 
-        x0=0.0, 
+        num_samples=1000,
+        dimensions=6,
+        sigma=1.0,
+        x0=0.0,
         method='no_sub'
     )
     integral, variance, _ = integrator.parallel_monte_carlo()
@@ -507,21 +507,21 @@ if __name__ == "__main__":
           f"{integral:.4f}, Variance: {variance:.4f}")
 
     integrator = GaussianIntegrator(
-        num_samples=10000, 
-        dimensions=1, 
-        sigma=1.0, 
-        x0=0.0, 
+        num_samples=10000,
+        dimensions=1,
+        sigma=1.0,
+        x0=0.0,
         method='sub'
     )
     integral, variance, _ = integrator.parallel_monte_carlo()
     print(f"Final Estimation for 1D Gaussian (Substitution): "
           f"{integral:.4f}, Variance: {variance:.4f}")
-    
+
     integratorsub = GaussianIntegrator(
-        num_samples=10000, 
-        dimensions=1, 
-        sigma=1, 
-        x0=1, 
+        num_samples=10000,
+        dimensions=1,
+        sigma=1,
+        x0=1,
         method='sub'
     )
 
