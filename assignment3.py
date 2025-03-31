@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# This code is based on an OOP example provided by Dr. Benjamin Hourahine in
-# PH510. Modifications made by kfb22143 - Licensed under the MIT License.
-# See LICENSE file for details.
+# This code is based on an OOP and parallel variance example provided by
+# Dr. Benjamin Hourahine in PH510. Modifications made by kfb22143 - Licensed 
+# under the MIT License. See LICENSE file for details.
 """
 Created on Mon Mar  3 15:07:49 2025
 
