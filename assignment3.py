@@ -31,6 +31,8 @@ class Error:
     def __add__(self, other):
         """
         Adds two objects together.
+        Returns:
+            temporary
         """
         temporary = copy.deepcopy(self)
         temporary.n_samples+= other.n_samples
@@ -45,6 +47,10 @@ class Error:
     def parallel_variance(self, samples_a, samples_b):
         """
         Computes the combined variance for two groups of samples.
+        Args:
+            the mean, variance and sample size.
+        Returns:
+            variance
         """
         n_a, mean_a, var_a = samples_a
         n_b, mean_b, var_b = samples_b
@@ -67,17 +73,17 @@ class Error:
 
 class MonteCarloIntegrator(Error):
     """
-	To initialise the Monte Carlo class.
+	Monte Carlo class which uses the multi-dimensional Monte Carlo quadrature 
+    formula to compute other integrals quickly. Inherits from the Error class.
 	"""
     def __init__(self, function, lower_bounds, upper_bounds, num_samples=1000000):
         """
 		Initialises parameters.
 		Args:
 			function: The function to integrate.
-			lower_bounds: List of lower bounds for each dimension.
-			upper_bounds: List of upper bounds for each dimension.
-
-			num_samples: Number of random samples to take.
+			lower_bounds,
+			upper_bounds,
+            num_samples.
 		"""
         lower_bounds = np.array(lower_bounds, dtype=float)
         upper_bounds = np.array(upper_bounds, dtype=float)
@@ -102,7 +108,8 @@ class MonteCarloIntegrator(Error):
     def parallel_monte_carlo(self):
         """
     		Performs the Monte Carlo integration to estimate the integral in
-            parallel across multiple processors.
+            parallel, also finds the variance on this by inheriting from the
+            Error class.
             Returns:
                 The value computed by the integral.
 		"""
@@ -113,8 +120,8 @@ class MonteCarloIntegrator(Error):
             (region_samples, self.params['dimensions'])
         )
         function_values = np.array(
-            [fx 
-             for fx in (self.params['function'](x) for x in samples) 
+            [fx
+             for fx in (self.params['function'](x) for x in samples)
              if fx is not None],
             dtype=np.float64
         )
@@ -131,7 +138,7 @@ class MonteCarloIntegrator(Error):
         global_integral = self.mpi_info['comm'].allreduce(
             local_integral, op=MPI.SUM
         ) / self.mpi_info['size']
-        
+
         global_variance = self.mpi_info['comm'].allreduce(
             local_variance, op=MPI.SUM
         ) / self.mpi_info['size']
@@ -139,25 +146,55 @@ class MonteCarloIntegrator(Error):
         standard_error = error_object.compute_error()
         if self.mpi_info['rank'] == 0:
             print("\n================ Monte Carlo Integration ===============")
-            print(f"Final {dimensions}D Integral: "
+            print(f"Final {self.params['dimensions']}D Integral: "
                   f"{global_integral:.6f}")
             print(f"Estimated Variance: {global_variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
-            if global_integral == 0.0:
-                print("Error: Integral computed as 0.0! "
-                      "Check function evaluation.")
+            if global_integral == 0:
+                print("Error: Integral computed as 0!")
             print("========================================================\n")
-    
+
         return (
-            global_integral, 
-            global_variance, 
+            global_integral,
+            global_variance,
             standard_error
         ) if self.mpi_info['rank'] == 0 else (None, None, None)
+
+    def plot_monte_carlo_convergence(self):
+        """
+            Plots Monte Carlo convergence.
+            Args:
+                the output of the monte carlo integral,
+                num_samples.
+            Returns:
+                Plot of the monte carlo integral value and the num_samples.
+        """
+        if self.mpi_info['rank'] != 0:
+            return
+        plt.figure(figsize=(8, 6))
+        sample_sizes = np.logspace(2, 6, num=20, dtype=int)
+        estimates = []
+
+        for N in sample_sizes:
+            self.params['num_samples'] = N
+            global_integral, _, _ = self.parallel_monte_carlo()
+            estimates.append(global_integral)
+
+        plt.plot(sample_sizes, estimates, marker="o", linestyle="-",
+                 label="Monte Carlo Estimate", color="blue")
+        plt.axhline(y=1.0, color='red', linestyle="dashed", label="Expected Value")
+        plt.xscale("log")
+        plt.xlabel("Number of Samples")
+        plt.ylabel("Integral Estimate")
+        plt.title("Monte Carlo Convergence")
+        plt.legend()
+        plt.grid()
+        plt.savefig("monte_carlo_convergence.png")
 
 class ContainedRegion(MonteCarloIntegrator):
     """
         This class inherits from previous class to compute the volume (region)
-        of a hyperspace using Monte Carlo.
+        of a hyperspace using the Monte Carlo integral.
     """
     def __init__(self, num_samples=100000, dimensions=5, seed=12345):
         """
@@ -220,19 +257,6 @@ class ContainedRegion(MonteCarloIntegrator):
             return final_volume, standard_error
     
         return None, None
-
-    def hyperspace_region_demo(self):
-        """
-            Hyperspace as a percentage of inner area to show the region.
-            Returns:
-                inner_percentage,
-                f-string.
-        """
-        points = self.sample_points()
-        inner = np.sum(points**2, axis=1) <= 1
-        inner_percentage = np.sum(inner) / self.num_samples
-        if self.mpi_info['rank'] == 0:
-            print(f"Percentage inside hyperspace: {inner_percentage:.4f}")
 
     def  plot_points_in_hyperspace(self):
         """
@@ -308,14 +332,16 @@ class ContainedRegion(MonteCarloIntegrator):
 
 class GaussianIntegrator(MonteCarloIntegrator):
     """
-        Monte Carlo integration of a Gaussian function.
+        Class which inherits from the MonteCarloIntegrator class to compute
+        a 1D, 6D gaussians and a gaussian over all space which uses 
+        substitution.
     """
     def __init__(self, num_samples, dimensions=1, sigma=1.0, 
-                 x0=0.0, method='no_sub', seed=12345):
+                 x0=0.0, seed=12345, method='no_sub'):
         """
             Initialises parameters for Gaussian function.
             Args:
-                num_samples, dimensions, sigma, x0.
+                num_samples, dimensions, sigma, x0, seed, method.
         """
         self.sigma = sigma
         self.x0 = x0
@@ -323,7 +349,11 @@ class GaussianIntegrator(MonteCarloIntegrator):
         self.num_samples = num_samples
         self.variance = 0
         self.method = method
-        self.seed = seed
+        self.mpi_info = {
+            'comm': MPI.COMM_WORLD,
+            'rank': MPI.COMM_WORLD.Get_rank(),
+            'size': MPI.COMM_WORLD.Get_size()
+        }
         self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
 
         if method == 'no_sub':
@@ -339,7 +369,12 @@ class GaussianIntegrator(MonteCarloIntegrator):
 
     def sub_function(self, t):
         """
-            docustring
+            Substitution which allows the gaussian integral to be solved over
+            all space.
+            Args:
+                t.
+            Returns:
+                new gaussian function.
         """
         epsilon = 1e-10
         t = np.clip(t, -1 + epsilon, 1 - epsilon)
@@ -355,8 +390,12 @@ class GaussianIntegrator(MonteCarloIntegrator):
 
     def gaussian(self, x):
         """
-            Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi))
-            * exp(-(x - x0)^2 / (2 * sigma^2))
+            This is the Gaussian function.
+            Args:
+                self, 
+                x.
+            Returns:
+                Gaussian integral in 1D, 6D or uses the substitution.
         """
         if self.method == 'no_sub':
             normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi))
@@ -370,9 +409,13 @@ class GaussianIntegrator(MonteCarloIntegrator):
 
     def compute_gaussian_integral(self):
         """
-        Computes the Monte Carlo estimation of the Gaussian integral.
+        Computes the Monte Carlo integral of the Gaussian function.
+        Args:
+            self, the gaussian function output.
         Returns:
-            Estimated integral, variance, and standard error.
+            integral,
+            variance,
+            standard error.
         """
         integral, variance, standard_error = self.parallel_monte_carlo()
 
@@ -385,127 +428,105 @@ class GaussianIntegrator(MonteCarloIntegrator):
         return integral, variance, standard_error
 
     def plot_gaussian_1d(self):
-        """Plot of a 1D Gaussian function."""
+        """
+        Plot of the 1D Gaussian integral function.
+        """
         if MPI.COMM_WORLD.Get_rank() == 0:
             plt.figure(figsize=(8, 6))
             x_values = self.rng.uniform(-5, 5, 500)
             y_values = self.gaussian(x_values[:, np.newaxis])
-        plt.plot(
-            x_values, 
-            y_values, 
-            label="Gaussian Function", 
-            color="blue", 
-            linewidth=2
-        )
-            #plt.errorbar(
-            #    x_values,
-            #    y_values,
-            #    xerr=None,
-            #    yerr=y_std,
-            #    label="Gaussian (1D)",
-            #    fmt='o',
-            #    color="blue"
-            #)
+            plt.scatter(
+                x_values, 
+                y_values, 
+                label="Gaussian Function", 
+                color="black", 
+                linewidth=2
+            )
+            y_errors = np.sqrt(y_values)
             plt.xlabel("x")
             plt.ylabel("Gaussian f(x)")
             plt.title("1D Gaussian Function")
             plt.legend()
             plt.grid()
-            plt.savefig("gaussian_1d11.png")
-
-    def plot_gaussian_6d(self):
-        """Plot of a 6D Gaussian as a heatmap of the first two dimensions."""
-        if MPI.COMM_WORLD.Get_rank() == 0:
-            plt.figure(figsize=(8, 6))
-            x_values = self.rng.uniform(-5 * self.sigma, 5 * self.sigma, 100)
-            y_values = self.rng.uniform(-5 * self.sigma, 5 * self.sigma, 100)
-            X, Y = np.meshgrid(x_values, y_values)
-            Z = np.zeros_like(X)
-    
-            for i in range(X.shape[0]):
-                for j in range(X.shape[1]):
-                    x_sample = np.array([X[i, j], Y[i, j], 0, 0, 0, 0])
-                    Z[i, j] = self.gaussian(x_sample)
-            plt.contourf(X, Y, Z, levels=50, cmap="hot")
-            plt.colorbar(label="Gaussian Value")
-            plt.xlabel("x-axis (Dim 1)")
-            plt.ylabel("y-axis (Dim 2)")
-            plt.title("Projected 6D Gaussian (First 2 Dimensions)")
-            plt.grid()
-            plt.savefig("gaussian_6d_contour.png")
+            plt.savefig("gaussian_1d_final.png")
 
     def plot_sub(self):
         """
-        Plot of transformed gaussian.
+        Plot of the gaussian integral over all space using the substitution.
+        Returns:
+            sub_plot_final.png
         """
         if self.mpi_info['rank'] == 0:
             plt.figure(figsize=(8, 6))
-            x_values = self.rng.uniform(-0.5, 0.5, 10000)
+            x_values = self.rng.uniform(-0.5, 0.5, 500)
             y_values = self.sub_function(x_values)
-            plt.plot(x_values, y_values)
+            plt.scatter(x_values, y_values, labrl="Gaussian Function")
+            plt.title("Gaussian Function Over All Space Using Substitution")
+            y_errors = np.sqrt(y_values)
             plt.grid()
-            plt.savefig("sub_plot1.png")
+            plt.savefig("sub_plot_final.png")
 
 if __name__ == "__main__":
     rank = MPI.COMM_WORLD.Get_rank()
+    
     if rank == 0:
         MAIN_NUM_SAMPLES = 1000000
         dimensions_list = [2, 3, 4, 5]
 
         for d in dimensions_list:
             mc_simulator = ContainedRegion(num_samples=MAIN_NUM_SAMPLES, dimensions=d)
-            volume_estimate, _ = mc_simulator.parallel_monte_carlo()
+            volume_estimate, _, _ = mc_simulator.parallel_monte_carlo()
             print(f"The volume for {d}D hyperspace: {volume_estimate:.4f}")
             if d == 2:
                 mc_simulator.twodimensionscatter()
             elif d == 3:
                 mc_simulator.threedimensionscatter()
-            else:
-                mc_simulator.hyperspace_region_demo()
 
         for dim in [1, 6]:
             gaussian_integrator = GaussianIntegrator(
                 num_samples=MAIN_NUM_SAMPLES, dimensions=dim, sigma=1.0, x0=0.0
             )
-            integral_value, _ = gaussian_integrator.parallel_monte_carlo()
+            integral_value, variance, _ = gaussian_integrator.parallel_monte_carlo()
             print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
 
             if dim == 1:
                 gaussian_integrator.plot_gaussian_1d()
-                gaussian_integrator.plot_sub()
-
-            if dim == 6:
-                gaussian_integrator.plot_gaussian_6d()
+                gaussian_integrator.plot_monte_carlo_convergence()
+                if rank == 0:
+                    gaussian_integrator.plot_sub()
 
     integrator = GaussianIntegrator(
-        MAIN_NUM_SAMPLES, 
+        num_samples=1000, 
         dimensions=6, 
         sigma=1.0, 
         x0=0.0, 
         method='no_sub'
     )
-    integral, variance = integrator.parallel_monte_carlo()
+    integral, variance, _ = integrator.parallel_monte_carlo()
     print(f"Final Estimation for 6D Gaussian: "
           f"{integral:.4f}, Variance: {variance:.4f}")
 
     integrator = GaussianIntegrator(
-        MAIN_NUM_SAMPLES, 
+        num_samples=10000, 
         dimensions=1, 
         sigma=1.0, 
         x0=0.0, 
         method='sub'
     )
-    integral, variance = integrator.parallel_monte_carlo()
+    integral, variance, _ = integrator.parallel_monte_carlo()
     print(f"Final Estimation for 1D Gaussian (Substitution): "
           f"{integral:.4f}, Variance: {variance:.4f}")
     
-
     integratorsub = GaussianIntegrator(
-        MAIN_NUM_SAMPLES, 
+        num_samples=10000, 
         dimensions=1, 
         sigma=1, 
         x0=1, 
         method='sub'
     )
-    integratorsub.plot_sub()
+
+    if rank == 0:
+        integratorsub.plot_sub()
+        integratorsub.plot_monte_carlo_convergence()
+
     MPI.Finalize()
