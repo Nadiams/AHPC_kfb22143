@@ -130,7 +130,7 @@ class MonteCarloIntegrator(Error):
             initial_mean = np.mean(function_values)
             initial_variance = np.var(function_values, ddof=1)
         else:
-            initial_mean, initial_variance = 0.0, 0.0
+            initial_mean, initial_variance = 0, 0
         initial_integral = self.params['volume'] * initial_mean
         total_samples = self.mpi_info['comm'].allreduce(
             region_samples, op=MPI.SUM
@@ -335,7 +335,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         substitution.
     """
     def __init__(self, num_samples, dimensions=1, sigma=1.0,
-                 x0=0.0, seed=12345, method='no_sub'):
+                 x0=0, seed=12345, method='no_sub'):
         """
             Initialises parameters for Gaussian function.
             Args:
@@ -480,7 +480,7 @@ if __name__ == "__main__":
 
         for dim in [1, 6]:
             gaussian_integrator = GaussianIntegrator(
-                num_samples=MAIN_NUM_SAMPLES, dimensions=dim, sigma=1.0, x0=0.0
+                num_samples=MAIN_NUM_SAMPLES, dimensions=dim, sigma=1.0, x0=0
             )
             integral_value, variance, _ = gaussian_integrator.parallel_monte_carlo()
             print(f"The integral of Gaussian ({dim}D): {integral_value:.4f}")
@@ -495,7 +495,7 @@ if __name__ == "__main__":
         num_samples=10000,
         dimensions=6,
         sigma=1.0,
-        x0=0.0,
+        x0=0,
         method='no_sub'
     )
     integral, variance, _ = integrator.parallel_monte_carlo()
@@ -506,7 +506,7 @@ if __name__ == "__main__":
         num_samples=100000,
         dimensions=1,
         sigma=1.0,
-        x0=0.0,
+        x0=0,
         method='sub'
     )
     integral, variance, _ = integrator.parallel_monte_carlo()
