@@ -154,15 +154,7 @@ class ContainedRegion(MonteCarloIntegrator):
         self.num_samples = num_samples
         self.dimensions = dimensions
         self.seed = seed
-        #self.mpi_info = {
-         #   'comm': MPI.COMM_WORLD,
-          #  'rank': MPI.COMM_WORLD.Get_rank(),
-           # 'size': MPI.COMM_WORLD.Get_size()
-        #}
         self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
-
-        #lower_bounds = [-1] * dimensions
-        #upper_bounds = [1] * dimensions
 
     def inside_hyperspace(self, point):
         """
@@ -185,9 +177,16 @@ class ContainedRegion(MonteCarloIntegrator):
             Returns:
                 Estimated volume.
         """
-        local_volume, local_variance = self.parallel_monte_carlo()
-        standard_error = np.sqrt(local_variance / self.num_samples)
-        return local_volume * (2 ** self.dimensions), standard_error
+        local_integral, local_variance = self.parallel_monte_carlo()
+        error_object = Error(self.num_samples, local_integral, local_variance)
+        standard_error = error_object.compute_error()
+        if self.mpi_info['rank'] == 0:
+            print("\n===== Monte Carlo Estimation of Hypersphere Volume =====")
+            print(f"Estimated Volume: {local_integral * (2 ** self.dimensions):.6f}")
+            print(f"Estimated Variance: {local_variance:.6f}")
+            print(f"Standard Error: {standard_error:.6f}")
+            print("========================================================\n")
+        return local_integral * (2 ** self.dimensions), standard_error
 
     def hyperspace_region_demo(self):
         """
