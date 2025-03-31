@@ -246,7 +246,7 @@ class ContainedRegion(MonteCarloIntegrator):
             final_volume = combined_error.mean * (2 ** self.dimensions)
             standard_error = combined_error.compute_error()
 
-            print("\n==== Monte Carlo Estimation of Hypersphere Volume =====")
+            print("\n==== Monte Carlo Computation of Hypersphere Volume =====")
             print(f"Estimated Volume: {final_volume:.6f}")
             print(f"Estimated Variance: {combined_error.variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
@@ -416,7 +416,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         integral, variance, standard_error = self.parallel_monte_carlo()
 
         if self.mpi_info['rank'] == 0:
-            print("\n===== Monte Carlo Estimation of Gaussian Integral ======")
+            print("\n==== Monte Carlo Computation of a Gaussian Integral ====")
             print(f"Estimated Integral: {integral:.6f}")
             print(f"Estimated Variance: {variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
@@ -499,7 +499,7 @@ if __name__ == "__main__":
         method='no_sub'
     )
     integral, variance, _ = integrator.parallel_monte_carlo()
-    print(f"Final Estimation for 6D Gaussian: "
+    print(f"Final Value for 6D Gaussian: "
           f"{integral:.4f}, Variance: {variance:.4f}")
 
     integrator = GaussianIntegrator(
@@ -510,7 +510,7 @@ if __name__ == "__main__":
         method='sub'
     )
     integral, variance, _ = integrator.parallel_monte_carlo()
-    print(f"Final Estimation for 1D Gaussian (Substitution): "
+    print(f"Final Value for 1D Gaussian (Substitution): "
           f"{integral:.4f}, Variance: {variance:.4f}")
 
     integratorsub = GaussianIntegrator(
