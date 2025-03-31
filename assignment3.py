@@ -54,7 +54,7 @@ class Error:
             delta_mean**2 * n_a * n_b / total_samples)
         )
         return final_m2 / (total_samples - 1)
-    
+
     def compute_error(self):
         return np.sqrt(self.variance / self.n_samples) if self.n_samples > 0 else 0
 
@@ -125,10 +125,11 @@ class MonteCarloIntegrator(Error):
             print("\n================ Monte Carlo Integration =================")
             print(f"Final 6D Integral: {global_integral:.6f}")
             print(f"Estimated Variance: {global_variance:.6f}")
+            print(f"Standard Error: {standard_error:.6f}")
             if global_integral == 0.0:
                 print("Error: Integral computed as 0.0! Check function evaluation.")
             print("========================================================\n")
-            return global_integral, global_variance, standard_error
+            return global_integral, self.variance, standard_error
         return None, None
 
 class ContainedRegion(MonteCarloIntegrator):
@@ -185,10 +186,8 @@ class ContainedRegion(MonteCarloIntegrator):
                 Estimated volume.
         """
         local_volume, local_variance = self.parallel_monte_carlo()
-        if self.mpi_info['rank'] == 0:
-            standard_error = np.sqrt(local_variance / self.num_samples)
-            return local_volume * (2 ** self.dimensions), standard_error
-        return 0.0, 0.0
+        standard_error = np.sqrt(local_variance / self.num_samples)
+        return local_volume * (2 ** self.dimensions), standard_error
 
     def hyperspace_region_demo(self):
         """
@@ -302,6 +301,34 @@ class GaussianIntegrator(MonteCarloIntegrator):
             self.gaussian, lower_bounds, upper_bounds, num_samples
         )
 
+    def sub_function(self, t):
+        """
+            docustring
+        """
+        epsilon = 1e-10
+        t = np.clip(t, -1 + epsilon, 1 - epsilon)
+        x = t / (1 - t**2)
+        normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi
+                                                    )))**self.dimensions
+        exponent = -((x - self.x0) ** 2
+                           ) / (2 * self.sigma ** 2)
+        gaussian_value = normalisation_factor * np.exp(exponent)
+        dx_dt = (1 + t**2) / (1 - t**2)**2
+        output = gaussian_value * dx_dt
+        return output
+
+    def plot_sub(self):
+        """
+        Plot of transformed gaussian.
+        """
+        if self.mpi_info['rank'] == 0:
+            plt.figure(figsize=(8, 6))
+            x_values = np.linspace(-0.5, 0.5, 10000)
+            y_values = self.sub_function(x_values)
+            plt.plot(x_values, y_values)
+            plt.grid()
+            plt.savefig("sub_plot1.png")
+
     def gaussian(self, x):
         """
             Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi))
@@ -325,33 +352,8 @@ class GaussianIntegrator(MonteCarloIntegrator):
             #return gaussian_value * np.prod(dx_dt, axis=-1)
             return self.sub_function(x)
 
-    def sub_function(self, t):
-        """
-            docustring
-        """
-        x = t / (1 - t**2)
-        normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi
-                                                    )))**self.dimensions
-        exponent = -((x - self.x0) ** 2) / (2 * self.sigma ** 2)
-        gaussian_value = normalisation_factor * np.exp(exponent)
-        dx_dt = (1 + t**2) / (1 - t**2)**2
-        output = gaussian_value * dx_dt
-        return output
-
-    def plot_sub(self):
-        """
-        Plot of transformed gaussian.
-        """
-        if self.mpi_info['rank'] == 0:
-            plt.figure(figsize=(8, 6))
-            x_values = np.linspace(-0.5, 0.5, 10)
-            y_values = self.sub_function(x_values)
-            plt.plot(x_values, y_values)
-            plt.grid()
-            plt.savefig("sub_plot1.png")
-
     def plot_gaussian_1d(self):
-        """Plot 1D Gaussian function."""
+        """Plot of a 1D Gaussian function."""
         if MPI.COMM_WORLD.Get_rank() == 0:
             plt.figure(figsize=(8, 6))
             x_values = np.linspace(-5, 5, 500)
@@ -371,21 +373,22 @@ class GaussianIntegrator(MonteCarloIntegrator):
             plt.title("1D Gaussian Function")
             plt.legend()
             plt.grid()
-            plt.savefig("gaussian_1d.png")
+            plt.savefig("gaussian_1d11.png")
 
     def plot_gaussian_6d(self):
-        """Plot a 6D Gaussian projection (scatter of first two dimensions)."""
+        """Plot of a 6D Gaussian as a heatmap of the first two dimensions."""
         if MPI.COMM_WORLD.Get_rank() == 0:
             plt.figure(figsize=(8, 6))
             x_values = np.linspace(-5 * self.sigma, 5 * self.sigma, 100)
             y_values = np.linspace(-5 * self.sigma, 5 * self.sigma, 100)
             X, Y = np.meshgrid(x_values, y_values)
             Z = np.zeros_like(X)
+    
             for i in range(X.shape[0]):
                 for j in range(X.shape[1]):
                     x_sample = np.array([X[i, j], Y[i, j], 0, 0, 0, 0])
                     Z[i, j] = self.gaussian(x_sample)
-            plt.contourf(X, Y, Z, levels=50, cmap="viridis")
+            plt.contourf(X, Y, Z, levels=50, cmap="hot")
             plt.colorbar(label="Gaussian Value")
             plt.xlabel("x-axis (Dim 1)")
             plt.ylabel("y-axis (Dim 2)")
