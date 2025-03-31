@@ -288,7 +288,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
     """
         Monte Carlo integration of a Gaussian function.
     """
-    def __init__(self, num_samples, dimensions=1, sigma=1.0, x0=0.0, method='no_sub'):
+    def __init__(self, num_samples, dimensions=1, sigma=1.0, x0=0.0, method='no_sub', seed = 12345):
         """
             Initialises parameters for Gaussian function.
             Args:
@@ -300,6 +300,8 @@ class GaussianIntegrator(MonteCarloIntegrator):
         self.num_samples = num_samples
         self.variance = 0
         self.method = method
+        self.seed = seed
+        self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
 
         if method == 'no_sub':
             lower_bounds = [-5 * sigma] * dimensions
@@ -343,11 +345,27 @@ class GaussianIntegrator(MonteCarloIntegrator):
         elif self.method == 'sub':
             return self.sub_function(x)
 
+    def compute_gaussian_integral(self):
+        """
+        Computes the Monte Carlo estimation of the Gaussian integral.
+        Returns:
+            Estimated integral, variance, and standard error.
+        """
+        integral, variance, standard_error = self.parallel_monte_carlo()
+
+        if self.mpi_info['rank'] == 0:
+            print("\n===== Monte Carlo Estimation of Gaussian Integral ======")
+            print(f"Estimated Integral: {integral:.6f}")
+            print(f"Estimated Variance: {variance:.6f}")
+            print(f"Standard Error: {standard_error:.6f}")
+            print("========================================================\n")
+        return integral, variance, standard_error
+
     def plot_gaussian_1d(self):
         """Plot of a 1D Gaussian function."""
         if MPI.COMM_WORLD.Get_rank() == 0:
             plt.figure(figsize=(8, 6))
-            x_values = np.linspace(-5, 5, 500)
+            x_values = self.rng.uniform(-5, 5, 500)
             y_values = self.gaussian(x_values[:, np.newaxis])
             plt.plot(x_values, y_values, label="Gaussian Function", color="blue", linewidth=2)
             #plt.errorbar(
@@ -370,8 +388,8 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """Plot of a 6D Gaussian as a heatmap of the first two dimensions."""
         if MPI.COMM_WORLD.Get_rank() == 0:
             plt.figure(figsize=(8, 6))
-            x_values = np.linspace(-5 * self.sigma, 5 * self.sigma, 100)
-            y_values = np.linspace(-5 * self.sigma, 5 * self.sigma, 100)
+            x_values = self.rng.uniform(-5 * self.sigma, 5 * self.sigma, 100)
+            y_values = self.rng.uniform(-5 * self.sigma, 5 * self.sigma, 100)
             X, Y = np.meshgrid(x_values, y_values)
             Z = np.zeros_like(X)
     
@@ -393,7 +411,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
         """
         if self.mpi_info['rank'] == 0:
             plt.figure(figsize=(8, 6))
-            x_values = np.linspace(-0.5, 0.5, 10000)
+            x_values = self.rng.uniform(-0.5, 0.5, 10000)
             y_values = self.sub_function(x_values)
             plt.plot(x_values, y_values)
             plt.grid()
