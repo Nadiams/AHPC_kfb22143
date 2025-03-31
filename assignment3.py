@@ -178,15 +178,25 @@ class ContainedRegion(MonteCarloIntegrator):
                 Estimated volume.
         """
         local_integral, local_variance = self.parallel_monte_carlo()
-        error_object = Error(self.num_samples, local_integral, local_variance)
-        standard_error = error_object.compute_error()
+        all_integrals = self.mpi_info['comm'].gather(local_integral, root=0)
+        all_variances = self.mpi_info['comm'].gather(local_variance, root=0)
         if self.mpi_info['rank'] == 0:
-            print("\n===== Monte Carlo Estimation of Hypersphere Volume =====")
-            print(f"Estimated Volume: {local_integral * (2 ** self.dimensions):.6f}")
-            print(f"Estimated Variance: {local_variance:.6f}")
+            combined_error = Error(self.num_samples, 0, 0)
+            for integral, variance in zip(all_integrals, all_variances):
+                worker_error = Error(self.num_samples, integral, variance)
+                combined_error += worker_error
+            final_volume = combined_error.mean * (2 ** self.dimensions)
+            standard_error = combined_error.compute_error()
+    
+            print("\n==== Monte Carlo Estimation of Hypersphere Volume =====")
+            print(f"Estimated Volume: {final_volume:.6f}")
+            print(f"Estimated Variance: {combined_error.variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
             print("========================================================\n")
-        return local_integral * (2 ** self.dimensions), standard_error
+    
+            return final_volume, standard_error
+    
+        return None, None
 
     def hyperspace_region_demo(self):
         """
