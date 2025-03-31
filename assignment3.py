@@ -116,21 +116,21 @@ class MonteCarloIntegrator(Error):
         else:
             local_mean, local_variance = 0.0, 0.0
         local_integral = self.params['volume'] * local_mean
+        total_samples = self.mpi_info['comm'].allreduce(region_samples, op=MPI.SUM)
         global_integral = self.mpi_info['comm'].allreduce(local_integral, op=MPI.SUM) / self.mpi_info['size']
         global_variance = self.mpi_info['comm'].allreduce(local_variance, op=MPI.SUM) / self.mpi_info['size']
+        error_object = Error(total_samples, global_integral, global_variance)
+        standard_error = error_object.compute_error()
         if self.mpi_info['rank'] == 0:
-            self.mean = global_integral
-            self.variance = global_variance
-            standard_error = self.compute_error()
-            print("\n================ Monte Carlo Integration =================")
-            print(f"Final 6D Integral: {global_integral:.6f}")
+            print("\n================ Monte Carlo Integration ===============")
+            print(f"Final {self.params['dimensions']}D Integral: {global_integral:.6f}")
             print(f"Estimated Variance: {global_variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
             if global_integral == 0.0:
                 print("Error: Integral computed as 0.0! Check function evaluation.")
             print("========================================================\n")
-            return global_integral, self.variance, standard_error
-        return None, None
+    
+        return global_integral, global_variance, standard_error if self.mpi_info['rank'] == 0 else (None, None, None)
 
 class ContainedRegion(MonteCarloIntegrator):
     """
@@ -183,7 +183,8 @@ class ContainedRegion(MonteCarloIntegrator):
         if self.mpi_info['rank'] == 0:
             combined_error = Error(self.num_samples, 0, 0)
             for integral, variance in zip(all_integrals, all_variances):
-                worker_error = Error(self.num_samples, integral, variance)
+                worker_samples = self.num_samples // self.mpi_info['size']
+                worker_error = Error(worker_samples, integral, variance)
                 combined_error += worker_error
             final_volume = combined_error.mean * (2 ** self.dimensions)
             standard_error = combined_error.compute_error()
@@ -222,7 +223,7 @@ class ContainedRegion(MonteCarloIntegrator):
         points_outside = []
 
         for _ in range(self.num_samples):
-            point = np.random.uniform(-1, 1, self.dimensions)
+            point = self.rng.uniform(-1, 1, self.dimensions)
             if np.linalg.norm(point) <= 1:
                 points_inside.append(point)
             else:
@@ -279,6 +280,7 @@ class ContainedRegion(MonteCarloIntegrator):
         ax.set_ylabel("y-axis")
         ax.set_zlabel("z-axis")
         ax.set_title("Monte Carlo Sampling of a 3D Sphere")
+        ax.set_box_aspect([1, 1, 1])
         ax.legend()
         plt.savefig("scatter_3d.png")
 
@@ -326,18 +328,6 @@ class GaussianIntegrator(MonteCarloIntegrator):
         output = gaussian_value * dx_dt
         return output
 
-    def plot_sub(self):
-        """
-        Plot of transformed gaussian.
-        """
-        if self.mpi_info['rank'] == 0:
-            plt.figure(figsize=(8, 6))
-            x_values = np.linspace(-0.5, 0.5, 10000)
-            y_values = self.sub_function(x_values)
-            plt.plot(x_values, y_values)
-            plt.grid()
-            plt.savefig("sub_plot1.png")
-
     def gaussian(self, x):
         """
             Gaussian function f(x) = 1 / (sigma * sqrt(2 * pi))
@@ -351,14 +341,6 @@ class GaussianIntegrator(MonteCarloIntegrator):
             return gaussian_output
 
         elif self.method == 'sub':
-            #transformed_x = x / (1 - x**2)
-            #dx_dt = (1 + x**2) / (1 - x**2)**2
-            #normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi
-            #                                            )))**self.dimensions
-            #exponent = -np.sum((transformed_x - self.x0) ** 2, axis=-1
-             #                  ) / (2 * self.sigma ** 2)
-            #gaussian_value = normalisation_factor * np.exp(exponent)
-            #return gaussian_value * np.prod(dx_dt, axis=-1)
             return self.sub_function(x)
 
     def plot_gaussian_1d(self):
@@ -404,6 +386,18 @@ class GaussianIntegrator(MonteCarloIntegrator):
             plt.title("Projected 6D Gaussian (First 2 Dimensions)")
             plt.grid()
             plt.savefig("gaussian_6d_contour.png")
+
+    def plot_sub(self):
+        """
+        Plot of transformed gaussian.
+        """
+        if self.mpi_info['rank'] == 0:
+            plt.figure(figsize=(8, 6))
+            x_values = np.linspace(-0.5, 0.5, 10000)
+            y_values = self.sub_function(x_values)
+            plt.plot(x_values, y_values)
+            plt.grid()
+            plt.savefig("sub_plot1.png")
 
 if __name__ == "__main__":
     rank = MPI.COMM_WORLD.Get_rank()
