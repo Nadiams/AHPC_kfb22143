@@ -80,7 +80,7 @@ class MonteCarloIntegrator(Error):
         """
 		Initialises parameters.
 		Args:
-			function: The function to integrate.
+			function: The function to integrate over.
 			lower_bounds,
 			upper_bounds,
             num_samples.
@@ -127,38 +127,35 @@ class MonteCarloIntegrator(Error):
         )
         function_values = function_values[np.isfinite(function_values)]
         if function_values.size > 0:
-            local_mean = np.mean(function_values)
-            local_variance = np.var(function_values, ddof=1)
+            initial_mean = np.mean(function_values)
+            initial_variance = np.var(function_values, ddof=1)
         else:
-            local_mean, local_variance = 0.0, 0.0
-        local_integral = self.params['volume'] * local_mean
+            initial_mean, initial_variance = 0.0, 0.0
+        initial_integral = self.params['volume'] * initial_mean
         total_samples = self.mpi_info['comm'].allreduce(
             region_samples, op=MPI.SUM
         )
-        global_integral = self.mpi_info['comm'].allreduce(
-            local_integral, op=MPI.SUM
+        combined_integral = self.mpi_info['comm'].allreduce(
+            initial_integral, op=MPI.SUM
         ) / self.mpi_info['size']
 
-        global_variance = self.mpi_info['comm'].allreduce(
-            local_variance, op=MPI.SUM
+        combined_variance = self.mpi_info['comm'].allreduce(
+            initial_variance, op=MPI.SUM
         ) / self.mpi_info['size']
-        error_object = Error(total_samples, global_integral, global_variance)
+        error_object = Error(total_samples,  combined_integral,  combined_variance)
         standard_error = error_object.compute_error()
         if self.mpi_info['rank'] == 0:
             print("\n================ Monte Carlo Integration ===============")
             print(f"Final {self.params['dimensions']}D Integral: "
-                  f"{global_integral:.6f}")
-            print(f"Estimated Variance: {global_variance:.6f}")
+                  f"{ combined_integral:.6f}")
+            print(f"Estimated Variance: { combined_variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
-            if global_integral == 0:
+            if  combined_integral == 0:
                 print("Error: Integral computed as 0!")
             print("========================================================\n")
 
-        return (
-            global_integral,
-            global_variance,
-            standard_error
-        ) if self.mpi_info['rank'] == 0 else (None, None, None)
+            return  combined_integral,  combined_variance, standard_error
+        return None, None, None
 
     def plot_monte_carlo_convergence(self):
         """
@@ -177,8 +174,8 @@ class MonteCarloIntegrator(Error):
 
         for num_samples in sample_sizes:
             self.params['num_samples'] = num_samples
-            global_integral, _, _ = self.parallel_monte_carlo()
-            estimates.append(global_integral)
+             combined_integral, _, _ = self.parallel_monte_carlo()
+            estimates.append( combined_integral)
 
         plt.plot(sample_sizes, estimates, marker="o", linestyle="-",
                  label="Monte Carlo Estimate", color="blue")
@@ -237,9 +234,9 @@ class ContainedRegion(MonteCarloIntegrator):
             Returns:
                 Estimated volume.
         """
-        local_integral, local_variance, _ = self.parallel_monte_carlo()
-        all_integrals = self.mpi_info['comm'].gather(local_integral, root=0)
-        all_variances = self.mpi_info['comm'].gather(local_variance, root=0)
+        initial_integral, initial_variance, _ = self.parallel_monte_carlo()
+        all_integrals = self.mpi_info['comm'].gather(initial_integral, root=0)
+        all_variances = self.mpi_info['comm'].gather(initial_variance, root=0)
         if self.mpi_info['rank'] == 0:
             combined_error = Error(self.num_samples, 0, 0)
             for worker_integral, worker_variance in zip(all_integrals, all_variances):
@@ -461,7 +458,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             y_values = self.sub_function(x_values)
             plt.scatter(x_values, y_values, labrl="Gaussian Function")
             plt.title("Gaussian Function Over All Space Using Substitution")
-            #y_err = np.sqrt(y_values)
+            #y_err= np.sqrt(y_values)
             plt.grid()
             plt.savefig("sub_plot_final.png")
 
