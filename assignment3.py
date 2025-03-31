@@ -175,8 +175,8 @@ class MonteCarloIntegrator(Error):
         sample_sizes = np.logspace(2, 6, num=20, dtype=int)
         estimates = []
 
-        for N in sample_sizes:
-            self.params['num_samples'] = N
+        for num_samples in sample_sizes:
+            self.params['num_samples'] = num_samples
             global_integral, _, _ = self.parallel_monte_carlo()
             estimates.append(global_integral)
 
@@ -236,14 +236,14 @@ class ContainedRegion(MonteCarloIntegrator):
             Returns:
                 Estimated volume.
         """
-        local_integral, local_variance = self.parallel_monte_carlo()
+        local_integral, local_variance, _ = self.parallel_monte_carlo()
         all_integrals = self.mpi_info['comm'].gather(local_integral, root=0)
         all_variances = self.mpi_info['comm'].gather(local_variance, root=0)
         if self.mpi_info['rank'] == 0:
             combined_error = Error(self.num_samples, 0, 0)
-            for integral, variance in zip(all_integrals, all_variances):
+            for worker_integral, worker_variance in zip(all_integrals, all_variances):
                 worker_samples = self.num_samples // self.mpi_info['size']
-                worker_error = Error(worker_samples, integral, variance)
+                worker_error = Error(worker_samples, worker_integral, worker_variance)
                 combined_error += worker_error
             final_volume = combined_error.mean * (2 ** self.dimensions)
             standard_error = combined_error.compute_error()
@@ -347,19 +347,17 @@ class GaussianIntegrator(MonteCarloIntegrator):
         self.x0 = x0
         self.dimensions = dimensions
         self.num_samples = num_samples
-        self.variance = 0
         self.method = method
+
         self.mpi_info = {
             'comm': MPI.COMM_WORLD,
             'rank': MPI.COMM_WORLD.Get_rank(),
             'size': MPI.COMM_WORLD.Get_size()
         }
         self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
-
-        if method == 'no_sub':
-            lower_bounds = [-5 * sigma] * dimensions
-            upper_bounds = [5 * sigma] * dimensions
-        elif method == 'sub':
+        lower_bounds = [-5 * sigma] * dimensions
+        upper_bounds = [5 * sigma] * dimensions
+        if method == 'sub':
             lower_bounds = [-1] * dimensions
             upper_bounds = [1] * dimensions
 
@@ -442,7 +440,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
                 color="black",
                 linewidth=2
             )
-            y_errors = np.sqrt(y_values)
+            #y_errors = np.sqrt(y_values)
             plt.xlabel("x")
             plt.ylabel("Gaussian f(x)")
             plt.title("1D Gaussian Function")
@@ -462,7 +460,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             y_values = self.sub_function(x_values)
             plt.scatter(x_values, y_values, labrl="Gaussian Function")
             plt.title("Gaussian Function Over All Space Using Substitution")
-            y_errors = np.sqrt(y_values)
+            #y_errors = np.sqrt(y_values)
             plt.grid()
             plt.savefig("sub_plot_final.png")
 
@@ -496,7 +494,7 @@ if __name__ == "__main__":
                     gaussian_integrator.plot_sub()
 
     integrator = GaussianIntegrator(
-        num_samples=1000,
+        num_samples=10000,
         dimensions=6,
         sigma=1.0,
         x0=0.0,
@@ -507,7 +505,7 @@ if __name__ == "__main__":
           f"{integral:.4f}, Variance: {variance:.4f}")
 
     integrator = GaussianIntegrator(
-        num_samples=10000,
+        num_samples=100000,
         dimensions=1,
         sigma=1.0,
         x0=0.0,
@@ -518,7 +516,7 @@ if __name__ == "__main__":
           f"{integral:.4f}, Variance: {variance:.4f}")
 
     integratorsub = GaussianIntegrator(
-        num_samples=10000,
+        num_samples=100000,
         dimensions=1,
         sigma=1,
         x0=1,
