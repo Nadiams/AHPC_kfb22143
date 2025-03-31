@@ -372,8 +372,8 @@ class GaussianIntegrator(MonteCarloIntegrator):
             Returns:
                 new gaussian function.
         """
-        epsilon = 1e-10
-        t = np.clip(t, -1 + epsilon, 1 - epsilon)
+        reduction_factor = 1e-10
+        t = np.clip(t, -1 + reduction_factor, 1 - reduction_factor)
         x = t / (1 - t**2)
         normalisation_factor = (1 / (self.sigma * np.sqrt(2 * np.pi
                                                     )))**self.dimensions
