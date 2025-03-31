@@ -193,8 +193,9 @@ class MonteCarloIntegrator(Error):
 
 class ContainedRegion(MonteCarloIntegrator):
     """
-        This class inherits from previous class to compute the volume (region)
-        of a hyperspace using the Monte Carlo integral.
+        This class inherits from previous MonteCarloIntegrator class to 
+        compute the volume (region) of a hyperspace using the Monte Carlo 
+        integral.
     """
     def __init__(self, num_samples=100000, dimensions=5, seed=12345):
         """
@@ -440,7 +441,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
                 color="black",
                 linewidth=2
             )
-            #y_errors = np.sqrt(y_values)
+            #y_err = np.sqrt(y_values)
             plt.xlabel("x")
             plt.ylabel("Gaussian f(x)")
             plt.title("1D Gaussian Function")
@@ -460,7 +461,7 @@ class GaussianIntegrator(MonteCarloIntegrator):
             y_values = self.sub_function(x_values)
             plt.scatter(x_values, y_values, labrl="Gaussian Function")
             plt.title("Gaussian Function Over All Space Using Substitution")
-            #y_errors = np.sqrt(y_values)
+            #y_err = np.sqrt(y_values)
             plt.grid()
             plt.savefig("sub_plot_final.png")
 
