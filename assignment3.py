@@ -174,7 +174,7 @@ class MonteCarloIntegrator(Error):
 
         for num_samples in sample_sizes:
             self.params['num_samples'] = num_samples
-             combined_integral, _, _ = self.parallel_monte_carlo()
+            combined_integral, _, _ = self.parallel_monte_carlo()
             estimates.append( combined_integral)
 
         plt.plot(sample_sizes, estimates, marker="o", linestyle="-",
