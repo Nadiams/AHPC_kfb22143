@@ -75,6 +75,19 @@ def random_walk_solver():
         current_position = (i, j)  # Initialise walker position
         for step in range(max_steps):  # Walk with a maximum limit on the number of steps
             i, j = current_position  # Current position of the walker
+            phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
+            if random.randint(0, 1):  # Pick row to move to
+                if i > 0:
+                    current_position = (i+1, j)
+                else:
+                    current_position = (i-1, j)
+            else:  # Pick column to move to
+                if j > 0:
+                    current_position = (i, j+1)
+                else:
+                    current_position = (i, j-1)
+    
+            visit_count[current_position] += 1
 
     green = (h**2) * visit_count / walkers
     
