@@ -23,24 +23,18 @@ def overrelaxation_method(self):
 square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
 This will be used as an independent check for your Monte Carlo results.
         """
-        # h is the grid spacing. Over-relaxation is faster but not necessary for the assignment.
-        N = 3
-        phi = np.array([N, N])
-        for i in range(1, N-1):
-            for j in range(1, N-1):
-                print(i,j)
 
 N = 4 # Sets the size of the grid.
 phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
 for i in range(0,N): # creates a grid of these zeros
     phi[0,i] = 1 # sets the first line, [0,i] all = 1 from which we can calculate numerical values.
-print(phi)
+print('phi first', phi)
 for itters in range(1000): # Repeats the solver 1000 times.
     for i in range(1, N-1):
         for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
            # print(i,j)
             phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
-print(phi)
+print('phi now=',phi)
 
             #phi[i,j] = omega * ( f[i,j] + 1/4* (phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) ) + (1 - omega) * initial_phi[i,j]  
         #num_samples = [self.rng]
@@ -51,3 +45,9 @@ print(phi)
                # bracket =  f[i:j] + 1/4 * inner
                # poisson = omega * bracket + (1 - omega) * initial_phi[i:j]       
         #return poisson
+        # h is the grid spacing. Over-relaxation is faster but not necessary for the assignment.
+#N = 4
+#phi = np.array([N, N])
+#for i in range(1, N-1):
+    #for j in range(1, N-1):
+       # print(i,j)
