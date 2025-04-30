@@ -52,23 +52,20 @@ def random_walk_solver():
     Implement a random-walk method to solve Poisson’s equation
     for a square N × N grid, using random walkers to obtain the Green’s function.
     """
-    
+
     N = 4  # Sets the size of the grid
     phi = np.zeros([N, N])  # Creates an array of zeros in a NxN (4x4) grid
-    
-    # Apply boundary conditions: set all boundaries to 1
+    walkers = 1000
+    max_steps = 1000
+    h = 1.0  # Grid spacing
+    start_point = (1, 1)
+    visit_count = np.zeros((N, N))
+    green = (h**2) * visit_count / walkers
     for i in range(N):
         phi[0, i] = 1        # Top boundary
         phi[N-1, i] = 1      # Bottom boundary
         phi[i, 0] = 1        # Left boundary
         phi[i, N-1] = 1      # Right boundary
-    
     print('Initial phi with boundary conditions:')
     print(phi)
-    
-    walkers = 1000
-    max_steps = 1000
-    
-    green = h**2 / walkers * sum_walkers(n[p,q])
-    
-    random_walk_solver()
+random_walk_solver()
