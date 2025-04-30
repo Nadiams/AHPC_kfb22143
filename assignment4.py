@@ -87,6 +87,15 @@ def random_walk_solver():
                     current_position = (i, j-1)
     
             visit_count[current_position] += 1
+    
+            if current_position[0] == 0: # Once an edge is reached, need to stop the function continuing.
+                break
+            elif current_position[0] == N-1:
+                break
+            elif current_position[1] == 0:
+                break
+            elif current_position[1] == N-1:
+                break
 
     green = (h**2) * visit_count / walkers
     
