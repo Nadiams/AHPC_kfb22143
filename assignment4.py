@@ -29,15 +29,6 @@ This will be used as an independent check for your Monte Carlo results.
         for i in range(1, N-1):
             for j in range(1, N-1):
                 print(i,j)
-            #phi[i,j] = omega * ( f[i,j] + 1/4* (phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) ) + (1 - omega) * initial_phi[i,j]  
-        #num_samples = [self.rng]
-    #    while omega += 1, 2:
-        #for n in num_samples:
-          #  if omega += 1, 2:
-               # inner = phi[i+1:j] + phi[i-1:j] + phi[i:j+1] + phi[i:j-1]
-               # bracket =  f[i:j] + 1/4 * inner
-               # poisson = omega * bracket + (1 - omega) * initial_phi[i:j]       
-        #return poisson
 
 N = 4 # Sets the size of the grid.
 phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
@@ -50,3 +41,13 @@ for itters in range(1000): # Repeats the solver 1000 times.
            # print(i,j)
             phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
 print(phi)
+
+            #phi[i,j] = omega * ( f[i,j] + 1/4* (phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) ) + (1 - omega) * initial_phi[i,j]  
+        #num_samples = [self.rng]
+    #    while omega += 1, 2:
+        #for n in num_samples:
+          #  if omega += 1, 2:
+               # inner = phi[i+1:j] + phi[i-1:j] + phi[i:j+1] + phi[i:j-1]
+               # bracket =  f[i:j] + 1/4 * inner
+               # poisson = omega * bracket + (1 - omega) * initial_phi[i:j]       
+        #return poisson
