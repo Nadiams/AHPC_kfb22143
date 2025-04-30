@@ -23,12 +23,12 @@ def overrelaxation_method():
     square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
     This will be used as an independent check for your Monte Carlo results.
     """
-    N = 4 # Sets the size of the grid.
+    N = 32 # Sets the size of the grid.
     phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
     for i in range(0,N): # creates a grid of these zeros
         phi[0,i] = 1 # sets the first line, [0,i] all = 1
-        phi[N-1, i] = 0
-        phi[i, 0] = 0
+        phi[N-1, i] = 1
+        phi[i, 0] = 1
         phi[i, N-1] = 1
     print('Initial phi with boundary conditions:')
     print(phi)
@@ -52,7 +52,7 @@ def random_walk_solver():
     for a square N × N grid, using random walkers to obtain the Green’s function.
     """
 
-    N = 4  # Sets the size of the grid
+    N = 32 # Sets the size of the grid
     phi = np.zeros([N, N])  # Creates an array of zeros in a NxN (4x4) grid
     walkers = 1000000
     max_steps = 1000000
@@ -105,3 +105,28 @@ def random_walk_solver():
     print(green)
     return(green)
 green = random_walk_solver()
+
+def plot_potential(phi):
+    """
+    Plots the 2D grid showing potential values for phi.
+    """
+    plt.imshow(phi, origin='lower', cmap='virilis')
+    plt.colorbar(label='Potential φ')
+    plt.title('Solution of Poisson’s Equation')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.show()
+
+def plot_green(green):
+    """
+    Plots the 2D grid showing Green's function values.
+    """
+    plt.imshow(green, origin='lower', cmap='virilis')
+    plt.colorbar(label='Green\'s function')
+    plt.title('Solution of Poisson’s Equation (Green\'s Function)')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.show()
+green = green / np.max(green) 
+plot_potential(phi)
+plot_green(green)
