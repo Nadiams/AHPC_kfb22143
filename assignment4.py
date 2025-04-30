@@ -70,6 +70,8 @@ def random_walk_solver():
     print(phi)
 
     for walker in range(walkers):    # Random walk for each walker
+        i = random.randint(1, N-2)  # Random row inside the grid
+        j = random.randint(1, N-2)  # Random column inside the grid
         current_position = (i, j)  # Initialise walker position
         for step in range(max_steps):  # Walk with a maximum limit on the number of steps
             i, j = current_position  # Current position of the walker
