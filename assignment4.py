@@ -28,13 +28,19 @@ N = 4 # Sets the size of the grid.
 phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
 for i in range(0,N): # creates a grid of these zeros
     phi[0,i] = 1 # sets the first line, [0,i] all = 1 from which we can calculate numerical values.
-print('phi first', phi)
+    phi[N-1, i] = 1
+    phi[i, 0] = 1
+    phi[i, N-1] = 1
+print('Initial phi with boundary conditions:')
+print(phi)
 for itters in range(1000): # Repeats the solver 1000 times.
     for i in range(1, N-1):
         for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
            # print(i,j)
             phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
 print('phi now=',phi)
+
+
 
             #phi[i,j] = omega * ( f[i,j] + 1/4* (phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) ) + (1 - omega) * initial_phi[i,j]  
         #num_samples = [self.rng]
