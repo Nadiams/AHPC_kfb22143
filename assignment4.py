@@ -59,7 +59,7 @@ def random_walk_solver():
     max_steps = 1000
     h = 1.0  # Grid spacing
     start_point = (1, 1)
-    visit_count = np.zeros((N, N))
+    visit_count = np.zeros((N, N))# To track the number of visits to each grid point
     green = (h**2) * visit_count / walkers
     for i in range(N):
         phi[0, i] = 1        # Top boundary
@@ -68,4 +68,17 @@ def random_walk_solver():
         phi[i, N-1] = 1      # Right boundary
     print('Initial phi with boundary conditions:')
     print(phi)
+
+    for walker in range(walkers):    # Random walk for each walker
+        current_position = (i, j)  # Initialise walker position
+        for step in range(max_steps):  # Walk with a maximum limit on the number of steps
+            i, j = current_position  # Current position of the walker
+
+    green = (h**2) * visit_count / walkers
+    
+    print('Visit count for each grid point:')
+    print(visit_count)
+    
+    print('Estimated Green\'s function for charge density:')
+    print(green)
 random_walk_solver()
