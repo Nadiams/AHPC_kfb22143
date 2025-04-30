@@ -110,7 +110,7 @@ def plot_potential(phi):
     """
     Plots the 2D grid showing potential values for phi.
     """
-    plt.imshow(phi, origin='lower', cmap='virilis')
+    plt.imshow(phi, origin='lower', cmap='viridis')
     plt.colorbar(label='Potential φ')
     plt.title('Solution of Poisson’s Equation')
     plt.xlabel('x')
@@ -121,7 +121,7 @@ def plot_green(green):
     """
     Plots the 2D grid showing Green's function values.
     """
-    plt.imshow(green, origin='lower', cmap='virilis')
+    plt.imshow(green, origin='lower', cmap='viridis')
     plt.colorbar(label='Green\'s function')
     plt.title('Solution of Poisson’s Equation (Green\'s Function)')
     plt.xlabel('x')
