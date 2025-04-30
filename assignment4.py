@@ -27,7 +27,7 @@ def overrelaxation_method():
     N = 4 # Sets the size of the grid.
     phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
     for i in range(0,N): # creates a grid of these zeros
-        phi[0,i] = 1 # sets the first line, [0,i] all = 1 from which we can calculate numerical values.
+        phi[0,i] = 1 # sets the first line, [0,i] all = 1
         phi[N-1, i] = 1
         phi[i, 0] = 1
         phi[i, N-1] = 1
@@ -42,3 +42,29 @@ def overrelaxation_method():
     print(phi)
 
 overrelaxation_method()
+
+
+# Task 2
+
+# Random Walk Solver for Poisson's Equation (Green's Function)
+def random_walk_solver():
+    """
+    Implement a random-walk method to solve Poisson’s equation
+    for a square N × N grid, using random walkers to obtain the Green’s function.
+    """
+import numpy as np
+
+N = 4  # Sets the size of the grid
+phi = np.zeros([N, N])  # Creates an array of zeros in a NxN (4x4) grid
+
+# Apply boundary conditions: set all boundaries to 1
+for i in range(N):
+    phi[0, i] = 1        # Top boundary
+    phi[N-1, i] = 1      # Bottom boundary
+    phi[i, 0] = 1        # Left boundary
+    phi[i, N-1] = 1      # Right boundary
+
+print('Initial phi with boundary conditions:')
+print(phi)
+
+random_walk_solver()
