@@ -232,7 +232,7 @@ def boundary_c(i, j):
         return -4  # Right -4 V
     return 0
 
-phi_a = overrelaxation_with_charge(N, boundary_func=boundary_case_a)
-phi_b = overrelaxation_with_charge(N, boundary_func=boundary_case_b)
-phi_c = overrelaxation_with_charge(N, boundary_func=boundary_case_c)
+phi_a = overrelaxation_with_charge(N, boundary_func=boundary_a)
+phi_b = overrelaxation_with_charge(N, boundary_func=boundary_b)
+phi_c = overrelaxation_with_charge(N, boundary_func=boundary_c)
 
