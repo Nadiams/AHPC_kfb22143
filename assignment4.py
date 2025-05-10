@@ -154,6 +154,15 @@ def plot_green_at_points(green, grid_size=10):
     plt.imshow(green, origin='lower', cmap='viridis')
     plt.colorbar(label="Green's function")
     plt.title("Green's Function at Grid Points")
+    for point in grid_points:
+        x_position = point[0]
+        y_position = point[1]
+        j_index = int(round(x_position / grid_spacing))
+        i_index = int(round(y_position / grid_spacing))
+        plt.plot(j_index, i_index, 'ro')
+        label = f"({x_position:.1f},{y_position:.1f}) cm"
+        plt.text(j_index + 0.5, i_index + 0.5, label,
+                 color='white', fontsize=5)
     plt.xlabel("x (grid index)")
     plt.ylabel("y (grid index)")
     plt.show()
