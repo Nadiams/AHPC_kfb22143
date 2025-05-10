@@ -134,8 +134,8 @@ plot_green(green)
 def evaluate_green_points(green, grid_size=10):
     N = green.shape[0]
     grid_spacing = grid_size / (N - 1)
-    physical_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
-    for point in physical_points:
+    grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+    for point in grid_points:
         x_position = point[0]
         y_position = point[1]
         print(x_position)
@@ -144,5 +144,17 @@ def evaluate_green_points(green, grid_size=10):
         i_index = int(round(y_position / grid_spacing))  # rows
         point_number = green[i_index, j_index]
         print(f"Green's function at ({x_position} cm, {y_position} cm) "
-              f"grid[{i_index}, {j_index}] = {point_number:.6f}")
+              f"grid[{i_index}, {j_index}] = {point_number:.4f}")
 evaluate_green_points(green)
+
+def plot_green_at_points(green, grid_size=10):
+    N = green.shape[0]
+    grid_spacing = grid_size / (N - 1)
+    grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+    plt.imshow(green, origin='lower', cmap='viridis')
+    plt.colorbar(label="Green's function")
+    plt.title("Green's Function at Grid Points")
+    plt.xlabel("x (grid index)")
+    plt.ylabel("y (grid index)")
+    plt.show()
+plot_green_at_points(green)
