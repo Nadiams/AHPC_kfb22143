@@ -32,7 +32,7 @@ def overrelaxation_method():
         phi[i, N-1] = 1
     print('Initial phi with boundary conditions:')
     print(phi)
-    for itters in range(1000): # Repeats the solver 1000 times.
+    for itters in range(100): # Repeats the solver 1000 times.
         for i in range(1, N-1):
             for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
                # print(i,j)
@@ -54,8 +54,8 @@ def random_walk_solver():
 
     N = 32 # Sets the size of the grid
     phi = np.zeros([N, N])  # Creates an array of zeros in a NxN (4x4) grid
-    walkers = 1000000
-    max_steps = 1000000
+    walkers = 10000
+    max_steps = 20000
     h = 1.0  # Grid spacing
     start_point = (1, 1)
     visit_count = np.zeros((N, N))# To track the number of visits to each grid point
@@ -76,14 +76,14 @@ def random_walk_solver():
             i, j = current_position  # Current position of the walker
             if random.randint(0, 1):  # Pick row to move to
                 if i > 0:
-                    current_position = (i+1, j)
-                else:
                     current_position = (i-1, j)
+                else:
+                    current_position = (i+1, j)
             else:  # Pick column to move to
                 if j > 0:
-                    current_position = (i, j+1)
-                else:
                     current_position = (i, j-1)
+                else:
+                    current_position = (i, j+1)
     
             visit_count[current_position] += 1
     
