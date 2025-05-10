@@ -138,5 +138,6 @@ def evaluate_green_points(green, grid_size=10):
     for point in physical_points:
         x_position = point[0]
         y_position = point[1]
-
+        print(x_position)
+        print(y_position)
 evaluate_green_points(green)
