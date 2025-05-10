@@ -130,3 +130,16 @@ def plot_green(green):
 green = green / np.max(green) 
 plot_potential(phi)
 plot_green(green)
+
+def evaluate_green_points(green, grid_size=10):
+    N = green.shape[0]
+    grid_spacing = grid_size / (N - 1)
+    physical_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+    for point in physical_points:
+        x_position = point[i]
+        y_position = point[j]
+        i=[]
+        j=[]
+        
+
+evaluate_green_points(green)
