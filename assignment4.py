@@ -173,20 +173,20 @@ def boundary_a(i, j):
 
 def boundary_b(i, j):
     if i == 0 or i == N-1:
-        return 1  # Top and bottom
+        return 1  # Top and bottom +1 V
     elif j == 0 or j == N-1:
-        return -1  # Left and right
+        return -1  # Left and right -1 V
     return 0
 
 def boundary_c(i, j):
     if i == 0:
-        return 2  # Top
+        return 2  # Top +2 V
     elif i == N-1:
-        return 0  # Bottom
+        return 0  # Bottom 0 V
     elif j == 0:
-        return 2  # Left
+        return 2  # Left +2 V
     elif j == N-1:
-        return -4  # Right
+        return -4  # Right -4 V
     return 0
 
 
