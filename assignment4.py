@@ -140,7 +140,7 @@ def evaluate_green_points(green, grid_size=10):
         y_position = point[1]
         print(x_position)
         print(y_position)
-        j_index = int(round(x_position / grid_spacing))  # colmns, convert integers into grid indices
+        j_index = int(round(x_position / grid_spacing))  # columns, convert integers into grid indices
         i_index = int(round(y_position / grid_spacing))  # rows
         point_number = green[i_index, j_index]
         print(f"Green's function at ({x_position} cm, {y_position} cm) "
