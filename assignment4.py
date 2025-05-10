@@ -136,10 +136,7 @@ def evaluate_green_points(green, grid_size=10):
     grid_spacing = grid_size / (N - 1)
     physical_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
     for point in physical_points:
-        x_position = point[i]
-        y_position = point[j]
-        i=[]
-        j=[]
-        
+        x_position = point[0]
+        y_position = point[1]
 
 evaluate_green_points(green)
