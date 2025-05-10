@@ -183,9 +183,15 @@ def overrelaxation_with_charge(N=32, h=0.01, max_iter=1000, tol=1e-5,
         for i in range(1, N-1):
             for j in range(1, N-1):
                 phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
+        max_delta = np.max(np.abs(phi - old_phi))
+        if max_delta < tol:
+            print(f"Converged after {iteration} iterations (Δφₘₐₓ = {max_delta:.2e}).")
+        break
+        print("Final φ after relaxation:")
     print(phi)
     return phi
 
+N = 32
 def boundary_a(i, j):
     return 1  # All edges +1 V
 
