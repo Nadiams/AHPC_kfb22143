@@ -193,6 +193,24 @@ def overrelaxation_method():
     print(phi)
     return phi
 
+def overrelaxation_with_charge(N=32, h=0.01, max_iter=1000, tol=1e-5,
+                               boundary_func=None, f=None):
+    phi = np.zeros((N, N))
+    for i in range(N):
+        phi[0,i] = boundary_func(0, i) # sets the first line, [0,i] all = 1
+        phi[N-1, i] = boundary_func(N-1,  i)
+        phi[i, 0] = boundary_func(i, 0)
+        phi[i, N-1] = boundary_func(i, N-1)
+    print("Initial φ with boundary conditions:")
+    print(phi)
+    for iteration in range(1, max_iter + 1):
+        old_phi = phi.copy()
+        for i in range(1, N-1):
+            for j in range(1, N-1):
+                phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
+    print(phi)
+    return phi
+
 def boundary_a(i, j):
     return 1  # All edges +1 V
 
