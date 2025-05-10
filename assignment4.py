@@ -168,6 +168,31 @@ def plot_green_at_points(green, grid_size=10):
     plt.show()
 plot_green_at_points(green)
 
+def overrelaxation_method():
+    """
+            Method to solve Poissons equation.
+            Implement a relaxation (or over-relaxation) method to solve Poisson’s equation for a
+    square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
+    This will be used as an independent check for your Monte Carlo results.
+    """
+    N = 32 # Sets the size of the grid.
+    phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
+    for i in range(0,N): # creates a grid of these zeros
+        phi[0,i] = 1 # sets the first line, [0,i] all = 1
+        phi[N-1, i] = 1
+        phi[i, 0] = 1
+        phi[i, N-1] = 1
+    print('Initial phi with boundary conditions:')
+    print(phi)
+    for itters in range(100): # Repeats the solver 1000 times.
+        for i in range(1, N-1):
+            for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
+               # print(i,j)
+                phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
+    print('phi after over-relaxation method:')
+    print(phi)
+    return phi
+
 def boundary_a(i, j):
     return 1  # All edges +1 V
 
