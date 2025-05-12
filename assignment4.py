@@ -272,11 +272,10 @@ class randwalker(MonteCarloIntegrator):
         print('Initial phi with boundary conditions:')
         print(phi)
     
-        for walker in range(walkers):    # Random walk for each walker
-            i = random.randint(1, N-2)  # Random row inside the grid
-            j = random.randint(1, N-2)  # Random column inside the grid
+        for _ in range(walkers):
+            i, j = random.randint(1, N-2), random.randint(1, N-2)  # Random row, column inside the grid
             current_position = (i, j)  # Initialise walker position
-            for step in range(max_steps):  # Walk with a maximum limit on the number of steps
+            for _ in range(max_steps):  # Walk with a maximum limit on the number of steps
                 i, j = current_position  # Current position of the walker
                 if random.randint(0, 1):  # Pick row to move to
                     if i > 0:
@@ -299,6 +298,11 @@ class randwalker(MonteCarloIntegrator):
                     break
                 elif current_position[1] == N-1:
                     break
+
+    green = (h ** 2) * visit_count / walkers
+    print('Estimated Green’s function:')
+    print(green)
+
 
         green = (h**2) * visit_count / walkers
         green_solve = np.sum(green * phi)
