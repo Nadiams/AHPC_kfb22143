@@ -221,35 +221,38 @@ phi_a = overrelaxation_with_charge(N, boundary_func=boundary_a)
 phi_b = overrelaxation_with_charge(N, boundary_func=boundary_b)
 phi_c = overrelaxation_with_charge(N, boundary_func=boundary_c)
 
+def charge_distributions(N, L):
+    """
+    """
 
-#  10 C charge, spread uniformly over the whole grid
-uniform_charge = np.zeros((N, N))
-for i in range(N):
-    for j in range(N):
-        uniform_charge[i, j] = 10.0 / (L * L)
-print("\nCharge distribution: Uniform (10 C total)")
-print(uniform_charge)
-
-# A uniform charge gradient from the top the the bottom of the grid, where the charge
-# density at the top of the grid is 1 Cm−2 and 0 at the bottom sites
-gradient_charge = np.zeros((N, N))
-for i in range(N):
-    density = 1.0 - (i / (N - 1))
-    for j in range(N):
-        gradient_charge[i, j] = density
-print("\nCharge distribution: Gradient (top→bottom 1→0)")
-print(gradient_charge)
-
-# An exponentially decaying charge distribution, exp −2000|r|, placed at the centre of
-# the grid.
-x = np.linspace(0, L, N)
-y = np.linspace(0, L, N)
-exp_charge = np.zeros((N, N))
-for i in range(N):
-    for j in range(N):
-        dx = x[j] - L/2
-        dy = y[i] - L/2
-        r = np.sqrt(dx**2 + dy**2)
-        exp_charge[i, j] = np.exp(-2000 * r)
-print("\nCharge distribution: Exponential (centered)")
-print(exp_charge)
+    #  10 C charge, spread uniformly over the whole grid
+    uniform_charge = np.zeros((N, N))
+    for i in range(N):
+        for j in range(N):
+            uniform_charge[i, j] = 10.0 / (L * L)
+    print("\nCharge distribution: Uniform (10 C total)")
+    print(uniform_charge)
+    
+    # A uniform charge gradient from the top the the bottom of the grid, where the charge
+    # density at the top of the grid is 1 Cm−2 and 0 at the bottom sites
+    gradient_charge = np.zeros((N, N))
+    for i in range(N):
+        density = 1.0 - (i / (N - 1))
+        for j in range(N):
+            gradient_charge[i, j] = density
+    print("\nCharge distribution: Gradient (top→bottom 1→0)")
+    print(gradient_charge)
+    
+    # An exponentially decaying charge distribution, exp −2000|r|, placed at the centre of
+    # the grid.
+    x = np.linspace(0, L, N)
+    y = np.linspace(0, L, N)
+    exp_charge = np.zeros((N, N))
+    for i in range(N):
+        for j in range(N):
+            dx = x[j] - L/2
+            dy = y[i] - L/2
+            r = np.sqrt(dx**2 + dy**2)
+            exp_charge[i, j] = np.exp(-2000 * r)
+    print("\nCharge distribution: Exponential (centered)")
+    print(exp_charge)
