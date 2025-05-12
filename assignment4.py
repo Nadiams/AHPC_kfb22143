@@ -40,6 +40,7 @@ def overrelaxation_method(f):
         for i in range(1, N-1):
             for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
                # print(i,j)
+               omega = 2 / 1 + np.sin(np.pi/N)
                 phi[i, j] = 1/4 * (
                     phi[i+1, j] + phi[i-1, j] +
                     phi[i, j+1] + phi[i, j-1] +
@@ -50,8 +51,6 @@ def overrelaxation_method(f):
     return phi
 
 phi=overrelaxation_method(test_func)
-
-#omega = 2 / 1 + np.sin(np.pi/N)
 
 # Task 2
 
