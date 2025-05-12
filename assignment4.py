@@ -16,11 +16,8 @@ from numpy.random import SeedSequence, default_rng
 import random
 #from mpi4py import MPI
 
-def test_func(x,y):
-
-    return x*y
-a = test_func(0,0)
-print(a)
+def test_func(i, j):
+    return i * j
 def overrelaxation_method(f):
     """
             Method to solve Poissons equation.
@@ -43,11 +40,15 @@ def overrelaxation_method(f):
         for i in range(1, N-1):
             for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
                # print(i,j)
-                phi[i,j] = 1/4 * ( ( h**2 * f(i,j) ) + phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
+                phi[i, j] = 1/4 * (
+                    phi[i+1, j] + phi[i-1, j] +
+                    phi[i, j+1] + phi[i, j-1] +
+                    (h**2) * f(i, j)
+                    ) # Used phi[i,j] to specifically alter each part of the grid.
     print('phi after over-relaxation method:')
     print(phi)
     return phi
-1
+
 phi=overrelaxation_method(test_func)
 
 #omega = 2 / 1 + np.sin(np.pi/N)
