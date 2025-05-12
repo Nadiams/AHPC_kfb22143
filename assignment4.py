@@ -57,7 +57,7 @@ def random_walk_solver():
     walkers = 10000
     max_steps = 20000
     h = 1.0  # Grid spacing
-    # start_point = (1, 1) # check
+    #start_point = (1, 1) # check
     visit_count = np.zeros((N, N))# To track the number of visits to each grid point
     green = (h**2) * visit_count / walkers
     for i in range(N):
@@ -97,14 +97,18 @@ def random_walk_solver():
                 break
 
     green = (h**2) * visit_count / walkers
+    green_solve = np.sum(green * phi)
     
     print('Visit count for each grid point:')
     print(visit_count)
     
     print('Estimated Green\'s function for charge density:')
     print(green)
-    return(green)
-green = random_walk_solver()
+    print('green solve', green_solve)
+    return green, green_solve
+green = random_walk_solver()[0]
+green_solve = random_walk_solver()[1]
+
 
 def plot_potential(phi):
     """
@@ -163,8 +167,8 @@ def plot_green_at_points(green, grid_size=10):
         label = f"({x_position:.1f},{y_position:.1f}) cm"
         plt.text(j_index + 0.5, i_index + 0.5, label,
                  color='white', fontsize=5)
-    plt.xlabel("x (grid index)")
-    plt.ylabel("y (grid index)")
+    plt.xlabel("x (grid index) cm")
+    plt.ylabel("y (grid index) cm")
     plt.show()
 plot_green_at_points(green)
 
@@ -257,3 +261,4 @@ def charge_distributions(N, L):
     print("\nCharge distribution: Exponential (centered)")
     print(exp_charge)
 
+charge_distributions(N,L)
