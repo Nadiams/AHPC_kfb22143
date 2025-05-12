@@ -188,43 +188,53 @@ class MonteCarloIntegrator(Error):
         plt.legend()
         plt.grid()
         plt.savefig("monte_carlo_convergence.png")
-
-def test_func(i, j):
-    return i * j
-#f = test_func()
-#print(f)
-def overrelaxation_method(f):
+class overrelaxation(MonteCarloIntegrator):
     """
             Method to solve Poissons equation.
             Implement a relaxation (or over-relaxation) method to solve Poisson’s equation for a
     square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
     This will be used as an independent check for your Monte Carlo results.
     """
-    N = 4 # Sets the size of the grid.
-    h = 1
-    omega = 2 / ( 1 + np.sin(np.pi/N) )
-    #f = 0
-    phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
-    for i in range(0,N): # creates a grid of these zeros
-        phi[0,i] = 1 # sets the first line, [0,i] all = 1
-        phi[N-1, i] = 1
-        phi[i, 0] = 1
-        phi[i, N-1] = 1
-    print('Initial phi with boundary conditions:')
-    print(phi)
-    for itters in range(100): # Repeats the solver 1000 times.
-        for i in range(1, N-1):
-            for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
-               # print(i,j)
-                poisson = 1/4 * (
-                    phi[i+1, j] + phi[i-1, j] +
-                    phi[i, j+1] + phi[i, j-1] +
-                    (h**2) * f(i, j)
-                    ) # Used phi[i,j] to specifically alter each part of the grid.
-                phi[i, j] = (1 - omega) * phi[i, j] + omega * poisson
-    print('phi after over-relaxation method:')
-    print(phi)
-    return phi
+    def __init__(self, num_samples, dimensions=1, sigma=1.0,
+                 x0=0, seed=12345):
+        """
+        """
+    def test_func(i, j):
+        return i * j
+    #f = test_func()
+    #print(f)
+    def overrelaxation_method(f):
+        """
+                Method to solve Poissons equation.
+                Implement a relaxation (or over-relaxation) method to solve Poisson’s equation for a
+        square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
+        This will be used as an independent check for your Monte Carlo results.
+        """
+        N = 4 # Sets the size of the grid.
+        h = 1
+        omega = 2 / ( 1 + np.sin(np.pi/N) )
+        #f = 0
+        phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
+        for i in range(0,N): # creates a grid of these zeros
+            phi[0,i] = 1 # sets the first line, [0,i] all = 1
+            phi[N-1, i] = 1
+            phi[i, 0] = 1
+            phi[i, N-1] = 1
+        print('Initial phi with boundary conditions:')
+        print(phi)
+        for itters in range(100): # Repeats the solver 1000 times.
+            for i in range(1, N-1):
+                for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
+                   # print(i,j)
+                    poisson = 1/4 * (
+                        phi[i+1, j] + phi[i-1, j] +
+                        phi[i, j+1] + phi[i, j-1] +
+                        (h**2) * f(i, j)
+                        ) # Used phi[i,j] to specifically alter each part of the grid.
+                    phi[i, j] = (1 - omega) * phi[i, j] + omega * poisson
+        print('phi after over-relaxation method:')
+        print(phi)
+        return phi
 phi=overrelaxation_method(test_func)
 
 # Task 2
