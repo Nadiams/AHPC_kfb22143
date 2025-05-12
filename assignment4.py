@@ -299,32 +299,6 @@ class randwalker(MonteCarloIntegrator):
         print(f"\nGreen’s function solution (sum φ·G): {green_solve:.6f}")
 
         return green, green_solve
-
-
-    def plot_potential(phi):
-        """
-        Plots the 2D grid showing potential values for phi.
-        """
-        plt.imshow(phi, origin='lower', cmap='viridis')
-        plt.colorbar(label='Potential φ')
-        plt.title('Solution of Poisson’s Equation')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.show()
-    
-    def plot_green(green):
-        """
-        Plots the 2D grid showing Green's function values.
-        """
-        plt.imshow(green, origin='lower', cmap='viridis')
-        plt.colorbar(label='Green\'s function')
-        plt.title('Solution of Poisson’s Equation (Green\'s Function)')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.show()
-    green = green / np.max(green) 
-    plot_potential(phi)
-    plot_green(green)
     
     def evaluate_green_points(green, grid_size=10):
         N = green.shape[0]
@@ -341,40 +315,9 @@ class randwalker(MonteCarloIntegrator):
             print(f"Green's function at ({x_position} cm, {y_position} cm) "
                   f"grid[{i_index}, {j_index}] = {point_number:.4f}")
 
-    def plot_green_at_points(green, grid_size=10):
-        N = green.shape[0]
-        grid_spacing = grid_size / (N - 1)
-        grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
-        plt.imshow(green, origin='lower', cmap='viridis')
-        plt.colorbar(label="Green's function")
-        plt.title("Green's Function at Grid Points")
-        for point in grid_points:
-            x_position = point[0]
-            y_position = point[1]
-            j_index = int(round(x_position / grid_spacing))
-            i_index = int(round(y_position / grid_spacing))
-            plt.plot(j_index, i_index, 'ro')
-            label = f"({x_position:.1f},{y_position:.1f}) cm"
-            plt.text(j_index + 0.5, i_index + 0.5, label,
-                     color='white', fontsize=5)
-        plt.xlabel("x (grid index) cm")
-        plt.ylabel("y (grid index) cm")
-        plt.show()
-    
-plot_green_at_points(green)
+
 
 # Task 4
-class potential_charge_solver(MonteCarloIntegrator):
-    """
-        Calculate, using the evaluated Green’s function, to at least 4 significant figures of
-        accuracy, the potential at the points.
-        Compare the potentials calculated from the Green’s function against results obtained the
-        relaxation solver
-    """
-    def __init__(self, num_samples, dimensions=1, sigma=1.0,
-                 x0=0, seed=12345):
-        """
-        """
     
     def overrelaxation_with_charge(N=4, h=0.01, max_iter=1000, tol=1e-5,
                                    boundary_func=None, f=None):
@@ -479,6 +422,53 @@ class potential_charge_solver(MonteCarloIntegrator):
             "Case C":        boundary_c
         }
 charge_distributions(N, L)
+
+    def plot_potential(phi):
+        """
+        Plots the 2D grid showing potential values for phi.
+        """
+        plt.imshow(phi, origin='lower', cmap='viridis')
+        plt.colorbar(label='Potential φ')
+        plt.title('Solution of Poisson’s Equation')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.show()
+    
+    def plot_green(green):
+        """
+        Plots the 2D grid showing Green's function values.
+        """
+        plt.imshow(green, origin='lower', cmap='viridis')
+        plt.colorbar(label='Green\'s function')
+        plt.title('Solution of Poisson’s Equation (Green\'s Function)')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.show()
+    green = green / np.max(green) 
+    plot_potential(phi)
+    plot_green(green)
+
+    def plot_green_at_points(green, grid_size=10):
+        N = green.shape[0]
+        grid_spacing = grid_size / (N - 1)
+        grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+        plt.imshow(green, origin='lower', cmap='viridis')
+        plt.colorbar(label="Green's function")
+        plt.title("Green's Function at Grid Points")
+        for point in grid_points:
+            x_position = point[0]
+            y_position = point[1]
+            j_index = int(round(x_position / grid_spacing))
+            i_index = int(round(y_position / grid_spacing))
+            plt.plot(j_index, i_index, 'ro')
+            label = f"({x_position:.1f},{y_position:.1f}) cm"
+            plt.text(j_index + 0.5, i_index + 0.5, label,
+                     color='white', fontsize=5)
+        plt.xlabel("x (grid index) cm")
+        plt.ylabel("y (grid index) cm")
+        plt.show()
+    
+plot_green_at_points(green)
 
 if __name__ == "__main__":
     solver = RandWalker()
