@@ -275,28 +275,19 @@ class randwalker(MonteCarloIntegrator):
         for _ in range(walkers):
             i, j = random.randint(1, N-2), random.randint(1, N-2)  # Random row, column inside the grid
             current_position = (i, j)  # Initialise walker position
-            for _ in range(max_steps):  # Walk with a maximum limit on the number of steps
-                i, j = current_position  # Current position of the walker
-                if random.randint(0, 1):  # Pick row to move to
-                    if i > 0:
-                        current_position = (i-1, j)
-                    else:
-                        current_position = (i+1, j)
-                else:  # Pick column to move to
-                    if j > 0:
-                        current_position = (i, j-1)
-                    else:
-                        current_position = (i, j+1)
-        
-                visit_count[current_position] += 1
-        
-                if current_position[0] == 0: # Once an edge is reached, need to stop the function continuing.
-                    break
-                elif current_position[0] == N-1:
-                    break
-                elif current_position[1] == 0:
-                    break
-                elif current_position[1] == N-1:
+            for _ in range(max_steps):
+                # Randomly choose direction: 0 = vertical, 1 = horizontal
+                if random.randint(0, 1):  # vertical move
+                    i += random.choice([-1, 1])
+                else:  # horizontal move
+                    j += random.choice([-1, 1])
+    
+                # Record visit if within bounds
+                if 0 <= i < N and 0 <= j < N:
+                    visit_count[i, j] += 1
+    
+                # Stop if walker hits the boundary
+                if i == 0 or i == N-1 or j == 0 or j == N-1:
                     break
 
     green = (h ** 2) * visit_count / walkers
