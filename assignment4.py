@@ -168,6 +168,8 @@ def plot_green_at_points(green, grid_size=10):
     plt.show()
 plot_green_at_points(green)
 
+# Task 4
+
 def overrelaxation_with_charge(N=32, h=0.01, max_iter=1000, tol=1e-5,
                                boundary_func=None, f=None):
     phi = np.zeros((N, N))
@@ -192,6 +194,8 @@ def overrelaxation_with_charge(N=32, h=0.01, max_iter=1000, tol=1e-5,
     return phi
 
 N = 32
+L = 0.1 # length of the grid
+h = L / (N - 1) # spacing
 def boundary_a(i, j):
     return 1  # All edges +1 V
 
@@ -217,3 +221,11 @@ phi_a = overrelaxation_with_charge(N, boundary_func=boundary_a)
 phi_b = overrelaxation_with_charge(N, boundary_func=boundary_b)
 phi_c = overrelaxation_with_charge(N, boundary_func=boundary_c)
 
+
+#  10 C charge, spread uniformly over the whole grid
+uniform_charge = np.zeros((N, N))
+for i in range(N):
+    for j in range(N):
+        uniform_charge[i, j] = 10.0 / (L * L)
+print("\nCharge distribution: Uniform (10 C total)")
+print(uniform_charge)
