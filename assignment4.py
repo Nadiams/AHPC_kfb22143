@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.random import SeedSequence, default_rng
 import random
+from mpi4py import MPI
 
 class Error:
     """
