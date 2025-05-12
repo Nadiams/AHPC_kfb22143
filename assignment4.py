@@ -57,7 +57,7 @@ def random_walk_solver():
     walkers = 10000
     max_steps = 20000
     h = 1.0  # Grid spacing
-    start_point = (1, 1)
+    # start_point = (1, 1) # check
     visit_count = np.zeros((N, N))# To track the number of visits to each grid point
     green = (h**2) * visit_count / walkers
     for i in range(N):
@@ -256,3 +256,4 @@ def charge_distributions(N, L):
             exp_charge[i, j] = np.exp(-2000 * r)
     print("\nCharge distribution: Exponential (centered)")
     print(exp_charge)
+
