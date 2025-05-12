@@ -255,38 +255,39 @@ class randwalker(MonteCarloIntegrator):
         self.walkers = walkers
         self.max_steps = max_steps
         self.h = h
-    def random_walk_solver():
-        """
-        Implement a random-walk method to solve Poisson’s equation
-        for a square N × N grid, using random walkers to obtain the Green’s function.
-        """
-        phi = np.zeros([N, N])  # Creates an array of zeros in a NxN (4x4) grid
-        #start_point = (1, 1) # check
-        visit_count = np.zeros((N, N))# To track the number of visits to each grid point
+        random.seed(seed)
+        np.random.seed(seed)
+
+    def random_walk_solver(self):
+        N = self.N
+        walkers = self.walkers
+        max_steps = self.max_steps
+        h = self.h
+
+        phi = np.zeros((N, N))
+        visit_count = np.zeros((N, N))
         green = (h**2) * visit_count / walkers
+
         for i in range(N):
-            phi[0, i] = 1        # Top boundary
-            phi[N-1, i] = 1      # Bottom boundary
-            phi[i, 0] = 1        # Left boundary
-            phi[i, N-1] = 1      # Right boundary
+            phi[0, i] = 1
+            phi[N-1, i] = 1
+            phi[i, 0] = 1
+            phi[i, N-1] = 1
+
         print('Initial phi with boundary conditions:')
         print(phi)
-    
+
         for _ in range(walkers):
-            i, j = random.randint(1, N-2), random.randint(1, N-2)  # Random row, column inside the grid
-            current_position = (i, j)  # Initialise walker position
+            i, j = random.randint(1, N-2), random.randint(1, N-2)
             for _ in range(max_steps):
-                # Randomly choose direction: 0 = vertical, 1 = horizontal
-                if random.randint(0, 1):  # vertical move
+                if random.randint(0, 1):
                     i += random.choice([-1, 1])
-                else:  # horizontal move
+                else:
                     j += random.choice([-1, 1])
-    
-                # Record visit if within bounds
+
                 if 0 <= i < N and 0 <= j < N:
                     visit_count[i, j] += 1
-    
-                # Stop if walker hits the boundary
+
                 if i == 0 or i == N-1 or j == 0 or j == N-1:
                     break
 
@@ -298,6 +299,7 @@ class randwalker(MonteCarloIntegrator):
         print(f"\nGreen’s function solution (sum φ·G): {green_solve:.6f}")
 
         return green, green_solve
+
 
     def plot_potential(phi):
         """
