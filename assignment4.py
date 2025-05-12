@@ -260,5 +260,20 @@ def charge_distributions(N, L):
             exp_charge[i, j] = np.exp(-2000 * r)
     print("\nCharge distribution: Exponential (centered)")
     print(exp_charge)
-
-charge_distributions(N,L)
+    charge_distributions = {
+        "Uniform (10C)":           uniform_charge,
+        "Gradient (top→bottom)":   gradient_charge,
+        "Exponential (centered)":  exp_charge
+    }
+    points = {
+        "(5,5) cm":    (16, 16),
+        "(2.5,2.5) cm":(8,   8),
+        "(0.1,2.5) cm":(8,   0),
+        "(0.1,0.1) cm":(0,   0)
+    }
+    boundary_conditions = {
+        "Case A": boundary_a,
+        "Case B": boundary_b,
+        "Case C":        boundary_c
+    }
+charge_distributions(N, L)
