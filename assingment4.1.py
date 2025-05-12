@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from numpy.random import SeedSequence, default_rng
 import random
 
-def overrelaxation_method():
+def overrelaxation_method(f):
     """
             Method to solve Poissons equation.
             Implement a relaxation (or over-relaxation) method to solve Poisson’s equation for a
@@ -32,6 +32,7 @@ def overrelaxation_method():
     """
     N = 32 # Sets the size of the grid.
     phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
+    h = 1
     for i in range(0,N): # creates a grid of these zeros
         phi[0,i] = 1 # sets the first line, [0,i] all = 1
         phi[N-1, i] = 1
@@ -43,11 +44,17 @@ def overrelaxation_method():
         for i in range(1, N-1):
             for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
                # print(i,j)
-                phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
+                phi[i, j] = 1/4 * (
+                    phi[i+1, j] + phi[i-1, j] +
+                    phi[i, j+1] + phi[i, j-1] +
+                    (h**2) * f(i, j)
+                ) # Used phi[i,j] to specifically alter each part of the grid.
     print('phi after over-relaxation method:')
     print(phi)
     return phi
 
+def test_func(i, j):
+    return i * j
 phi=overrelaxation_method()
 
 # Task 2

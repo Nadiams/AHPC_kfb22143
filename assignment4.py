@@ -18,6 +18,8 @@ import random
 
 def test_func(i, j):
     return i * j
+#f = test_func()
+#print(f)
 def overrelaxation_method(f):
     """
             Method to solve Poissons equation.
@@ -27,6 +29,7 @@ def overrelaxation_method(f):
     """
     N = 4 # Sets the size of the grid.
     h = 1
+    omega = 2 / ( 1 + np.sin(np.pi/N) )
     #f = 0
     phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
     for i in range(0,N): # creates a grid of these zeros
@@ -40,16 +43,15 @@ def overrelaxation_method(f):
         for i in range(1, N-1):
             for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
                # print(i,j)
-               omega = 2 / 1 + np.sin(np.pi/N)
-                phi[i, j] = 1/4 * (
+                poisson = 1/4 * (
                     phi[i+1, j] + phi[i-1, j] +
                     phi[i, j+1] + phi[i, j-1] +
                     (h**2) * f(i, j)
                     ) # Used phi[i,j] to specifically alter each part of the grid.
+                phi[i, j] = (1 - omega) * phi[i, j] + omega * poisson
     print('phi after over-relaxation method:')
     print(phi)
     return phi
-
 phi=overrelaxation_method(test_func)
 
 # Task 2
