@@ -304,21 +304,12 @@ class randwalker(MonteCarloIntegrator):
         N = green.shape[0]
         grid_spacing = grid_size / (N - 1)
         grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
-        for point in grid_points:
-            x_position = point[0]
-            y_position = point[1]
-            print(x_position)
-            print(y_position)
-            j_index = int(round(x_position / grid_spacing))  # columns, convert integers into grid indices
-            i_index = int(round(y_position / grid_spacing))  # rows
-            point_number = green[i_index, j_index]
-            print(f"Green's function at ({x_position} cm, {y_position} cm) "
-                  f"grid[{i_index}, {j_index}] = {point_number:.4f}")
+        for x, y in grid_points:
+            i = int(round(y / grid_spacing))
+            j = int(round(x / grid_spacing))
+            value = green[i, j]
+            print(f"Green's function at ({x} cm, {y} cm) grid[{i}, {j}] = {value:.4f}")
 
-
-
-# Task 4
-    
     def overrelaxation_with_charge(N=4, h=0.01, max_iter=1000, tol=1e-5,
                                    boundary_func=None, f=None):
         phi = np.zeros((N, N))
