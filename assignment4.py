@@ -250,17 +250,17 @@ class randwalker(MonteCarloIntegrator):
                  x0=0, seed=12345):
         """
         """
+    def __init__(self, N=4, walkers=10000, max_steps=20000, h=1.0, seed=12345):
+        self.N = N
+        self.walkers = walkers
+        self.max_steps = max_steps
+        self.h = h
     def random_walk_solver():
         """
         Implement a random-walk method to solve Poisson’s equation
         for a square N × N grid, using random walkers to obtain the Green’s function.
         """
-
-        N = 4 # Sets the size of the grid
         phi = np.zeros([N, N])  # Creates an array of zeros in a NxN (4x4) grid
-        walkers = 10000
-        max_steps = 20000
-        h = 1.0  # Grid spacing
         #start_point = (1, 1) # check
         visit_count = np.zeros((N, N))# To track the number of visits to each grid point
         green = (h**2) * visit_count / walkers
@@ -290,23 +290,14 @@ class randwalker(MonteCarloIntegrator):
                 if i == 0 or i == N-1 or j == 0 or j == N-1:
                     break
 
-    green = (h ** 2) * visit_count / walkers
-    print('Estimated Green’s function:')
-    print(green)
-
-
         green = (h**2) * visit_count / walkers
         green_solve = np.sum(green * phi)
-        
-        print('Visit count for each grid point:')
-        print(visit_count)
-        
-        print('Estimated Green\'s function for charge density:')
-        print(green)
-        print('green solve', green_solve)
+
+        print("Visit count per grid point:\n", visit_count)
+        print("\nEstimated Green’s function:\n", green)
+        print(f"\nGreen’s function solution (sum φ·G): {green_solve:.6f}")
+
         return green, green_solve
-    green = random_walk_solver()[0]
-    green_solve = random_walk_solver()[1]
 
     def plot_potential(phi):
         """
@@ -486,3 +477,10 @@ class potential_charge_solver(MonteCarloIntegrator):
             "Case C":        boundary_c
         }
 charge_distributions(N, L)
+
+if __name__ == "__main__":
+    solver = RandWalker()
+    green, green_solve = solver.random_walk_solver()
+
+
+
