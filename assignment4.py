@@ -299,16 +299,6 @@ class randwalker(MonteCarloIntegrator):
         print(f"\nGreen’s function solution (sum φ·G): {green_solve:.6f}")
 
         return green, green_solve
-    
-    def evaluate_green_points(green, grid_size=10):
-        N = green.shape[0]
-        grid_spacing = grid_size / (N - 1)
-        grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
-        for x, y in grid_points:
-            i = int(round(y / grid_spacing))
-            j = int(round(x / grid_spacing))
-            value = green[i, j]
-            print(f"Green's function at ({x} cm, {y} cm) grid[{i}, {j}] = {value:.4f}")
 
     def overrelaxation_with_charge(N=4, h=0.01, max_iter=1000, tol=1e-5,
                                    boundary_func=None, f=None):
@@ -362,7 +352,17 @@ class randwalker(MonteCarloIntegrator):
     
     for label, func in boundary_conditions:
         results[f"phi_{label}"] = overrelaxation_with_charge(N, boundary_func=func)
-    
+
+    def evaluate_green_points(green, grid_size=10):
+        N = green.shape[0]
+        grid_spacing = grid_size / (N - 1)
+        grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+        for x, y in grid_points:
+            i = int(round(y / grid_spacing))
+            j = int(round(x / grid_spacing))
+            value = green[i, j]
+            print(f"Green's function at ({x} cm, {y} cm) grid[{i}, {j}] = {value:.4f}")
+
     def charge_distributions(N, L):
         """
         """
