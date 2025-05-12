@@ -240,3 +240,16 @@ for i in range(N):
 print("\nCharge distribution: Gradient (top→bottom 1→0)")
 print(gradient_charge)
 
+# An exponentially decaying charge distribution, exp −2000|r|, placed at the centre of
+# the grid.
+x = np.linspace(0, L, N)
+y = np.linspace(0, L, N)
+exp_charge = np.zeros((N, N))
+for i in range(N):
+    for j in range(N):
+        dx = x[j] - L/2
+        dy = y[i] - L/2
+        r = np.sqrt(dx**2 + dy**2)
+        exp_charge[i, j] = np.exp(-2000 * r)
+print("\nCharge distribution: Exponential (centered)")
+print(exp_charge)
