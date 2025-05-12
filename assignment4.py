@@ -229,3 +229,14 @@ for i in range(N):
         uniform_charge[i, j] = 10.0 / (L * L)
 print("\nCharge distribution: Uniform (10 C total)")
 print(uniform_charge)
+
+# A uniform charge gradient from the top the the bottom of the grid, where the charge
+# density at the top of the grid is 1 Cm−2 and 0 at the bottom sites
+gradient_charge = np.zeros((N, N))
+for i in range(N):
+    density = 1.0 - (i / (N - 1))
+    for j in range(N):
+        gradient_charge[i, j] = density
+print("\nCharge distribution: Gradient (top→bottom 1→0)")
+print(gradient_charge)
+
