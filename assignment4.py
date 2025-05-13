@@ -196,7 +196,7 @@ class overrelaxation(MonteCarloIntegrator):
     square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
     This will be used as an independent check for your Monte Carlo results.
     """
-    def __init__(self, N=4, walkers=10000, max_steps=20000, h=1.0, seed=12345,
+    def __init__(self, N=4, walkers=10000, max_steps=20000, h=1, seed=12345,
                  num_samples=1000, dimensions=1):
         self.N = N
         self.walkers = walkers
@@ -207,19 +207,20 @@ class overrelaxation(MonteCarloIntegrator):
         self.num_samples = num_samples
         self.rng = default_rng(SeedSequence(seed))
         self.phi = np.zeros((N, N))
-        for i in range(N):
-            self.phi[0, i] = 1
-            self.phi[N-1, i] = 1
-            self.phi[i, 0] = 1
-            self.phi[i, N-1] = 1
-        print("Initial φ with boundary conditions:")
-        print(self.phi)
         super().__init__(
             function=self.inside_hyperspace,
             lower_bounds=[-1]*dimensions,
             upper_bounds=[1]*dimensions,
             num_samples=num_samples
         )
+    def laplace(self):
+        for i in range(self.N):
+            self.phi[0, i] = 1
+            self.phi[self.N-1, i] = 1
+            self.phi[i, 0] = 1
+            self.phi[i, self.N-1] = 1
+        print("Initial φ with boundary conditions:")
+        print(self.phi)
 
     def test_func(i, j):
         return i * j
@@ -230,29 +231,26 @@ class overrelaxation(MonteCarloIntegrator):
         square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
         This will be used as an independent check for your Monte Carlo results.
         """
-        N = 4 # Sets the size of the grid.
-        h = 1
         omega = 2 / ( 1 + np.sin(np.pi/N) )
         #f = 0
-        phi = np.zeros([N, N]) # creates an array of zeros in a NxN (4x4) grid 
-        for i in range(0,N): # creates a grid of these zeros
-            phi[0,i] = 1 # sets the first line, [0,i] all = 1
-            phi[N-1, i] = 1
-            phi[i, 0] = 1
-            phi[i, N-1] = 1
-        print('Initial phi with boundary conditions:')
-        print(phi)
-        for itters in range(100): # Repeats the solver 1000 times.
-            for i in range(1, N-1):
-                for j in range(1, N-1): # enables the relaxer to navigate the grid and protects it from encountering neighbours outside the grid.
-                   # print(i,j)
+    def overrelaxation_method(self, f, max_iter=100, tol=1e-5):
+        phi = self.phi.copy()
+        omega = 2 / (1 + np.sin(np.pi / self.N))
+
+        for iters in range(max_iters):
+            old_phi = phi.copy()
+            for i in range(1, self.N - 1):
+                for j in range(1, self.N - 1):
                     poisson = 1/4 * (
                         phi[i+1, j] + phi[i-1, j] +
                         phi[i, j+1] + phi[i, j-1] +
-                        (h**2) * f(i, j)
-                        ) # Used phi[i,j] to specifically alter each part of the grid.
+                        (self.h ** 2) * f(i, j)
+                    )
                     phi[i, j] = (1 - omega) * phi[i, j] + omega * poisson
-        print('phi after over-relaxation method:')
+            if np.max(np.abs(phi - old_phi)) < tol:
+                print(f"Converged after {it+1} iterations.")
+                break
+        print("phi after over-relaxation:")
         print(phi)
         return phi
     phi=overrelaxation_method(test_func)
