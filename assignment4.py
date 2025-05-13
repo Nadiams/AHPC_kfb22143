@@ -255,6 +255,17 @@ class overrelaxation(MonteCarloIntegrator):
         return phi
     phi=overrelaxation_method(test_func)
 
+    def plot_potential(phi):
+        """
+        Plots the 2D grid showing potential values for phi.
+        """
+        plt.imshow(phi, origin='lower', cmap='viridis')
+        plt.colorbar(label='Potential φ')
+        plt.title('Solution of Poisson’s Equation')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.show()
+
 # Task 2
 
 # Random Walk Solver for Poisson's Equation (Green's Function)
@@ -265,11 +276,14 @@ class randwalker(MonteCarloIntegrator):
     for a square N × N grid, using random walkers to obtain the Green’s function.
     """
     def __init__(self, N=4, walkers=10000, max_steps=20000, h=1.0, seed=12345,
-                 num_samples=1000, dimensions=1):
+                 num_samples=1000, dimensions=1, L=10):
         self.N = N
         self.walkers = walkers
         self.max_steps = max_steps
         self.h = h
+        self.L = L
+        self.h = L / (N - 1)
+        self.tol = tol
         self.seed = seed
         self.dimensions = dimensions
         self.num_samples = num_samples
@@ -318,27 +332,30 @@ class randwalker(MonteCarloIntegrator):
 
     def overrelaxation_with_charge(self, tol=1e-5,
                                    boundary_func=None, f=None):
-        for i in range(N):
-            phi[0,i] = boundary_func(0, i) # sets the first line, [0,i] all = 1
-            phi[N-1, i] = boundary_func(N-1,  i)
-            phi[i, 0] = boundary_func(i, 0)
-            phi[i, N-1] = boundary_func(i, N-1)
+        self.laplace()
+        N = self.N
+        for i in range(self.N):
+            self.phi[0, i] = boundary_func(0, i)
+            self.phi[self.N - 1, i] = boundary_func(self.N - 1, i)
+            self.phi[i, 0] = boundary_func(i, 0)
+            self.phi[i, self.N - 1] = boundary_func(i, self.N - 1)
         print("Initial φ with boundary conditions:")
         print(phi)
         for iteration in range(1, max_iter + 1):
             old_phi = phi.copy()
             for i in range(1, N-1):
                 for j in range(1, N-1):
-                    phi[i,j] = 1/4 * ( phi[i+1,j] + phi[i-1,j] + phi[i,j+1] + phi[i,j-1]) # Used phi[i,j] to specifically alter each part of the grid.
-            max_delta = np.max(np.abs(phi - old_phi))
-            if max_delta < tol:
+                    phi[i,j] = 1/4 * (
+                        self.phi[i+1,j] + self.phi[i-1,j] +
+                        self.phi[i,j+1] + self.phi[i,j-1])
+            max_delta = np.max(np.abs(self.phi - old_phi))
+            if max_delta < self.tol:
                 print(f"Converged after {iteration} iterations (Δφₘₐₓ = {max_delta:.2e}).")
             break
             print("Final φ after relaxation:")
-        print(phi)
-        return phi
-    
-    N = 4
+        print(self.phi)
+        return self.phi
+
     L = 0.1 # length of the grid
     h = L / (N - 1) # spacing
     def boundary_a(i, j):
@@ -368,15 +385,10 @@ class randwalker(MonteCarloIntegrator):
     for label, func in boundary_conditions:
         results[f"phi_{label}"] = overrelaxation_with_charge(N, boundary_func=func)
 
-    def evaluate_green_points(green, grid_size=10):
-        N = green.shape[0]
-        grid_spacing = grid_size / (N - 1)
-        grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
-        for x, y in grid_points:
-            i = int(round(y / grid_spacing))
-            j = int(round(x / grid_spacing))
-            value = green[i, j]
-            print(f"Green's function at ({x} cm, {y} cm) grid[{i}, {j}] = {value:.4f}")
+solver = ChargeRelaxationSolver(N=4)
+phi_uniform = solver.solve_with_charge(charge_func=uniform_charge, boundary_func=boundary_a)
+
+print("Final φ:\n", phi_uniform)
 
     def charge_distributions(N, L):
         """
@@ -431,16 +443,7 @@ class randwalker(MonteCarloIntegrator):
         }
 charge_distributions(N, L)
 
-    def plot_potential(phi):
-        """
-        Plots the 2D grid showing potential values for phi.
-        """
-        plt.imshow(phi, origin='lower', cmap='viridis')
-        plt.colorbar(label='Potential φ')
-        plt.title('Solution of Poisson’s Equation')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.show()
+
     
     def plot_green(green):
         """
@@ -475,7 +478,16 @@ charge_distributions(N, L)
         plt.xlabel("x (grid index) cm")
         plt.ylabel("y (grid index) cm")
         plt.show()
-    
+
+        def evaluate_green_points(green, grid_size=10):
+            N = green.shape[0]
+            grid_spacing = grid_size / (N - 1)
+            grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+            for x, y in grid_points:
+                i = int(round(y / grid_spacing))
+                j = int(round(x / grid_spacing))
+                value = green[i, j]
+                print(f"Green's function at ({x} cm, {y} cm) grid[{i}, {j}] = {value:.4f}")
 plot_green_at_points(green)
 
 if __name__ == "__main__":
