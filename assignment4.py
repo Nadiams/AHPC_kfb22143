@@ -303,7 +303,7 @@ class randwalker(MonteCarloIntegrator):
                     i += self.rng.choice([-1, 1])
                 else:
                     j += self.rng.choice([-1, 1])
-                if i in [0, self.N-1] or j in [0, self.N-1]:
+                if i in [0, N-1] or j in [0, N-1]:
                     break
                 visit_count[i, j] += 1
 
