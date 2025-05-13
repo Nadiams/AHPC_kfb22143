@@ -196,14 +196,24 @@ class overrelaxation(MonteCarloIntegrator):
     square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
     This will be used as an independent check for your Monte Carlo results.
     """
-    def __init__(self, num_samples, dimensions=1, sigma=1.0,
-                 x0=0, seed=12345):
-        """
-        """
-        self.num_samples = num_samples
-        self.dimensions = dimensions
+    def __init__(self, N=4, walkers=10000, max_steps=20000, h=1.0, seed=12345,
+                 num_samples=1000, dimensions=1):
+        self.N = N
+        self.walkers = walkers
+        self.max_steps = max_steps
+        self.h = h
         self.seed = seed
-        self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
+        self.dimensions = dimensions
+        self.num_samples = num_samples
+        self.rng = default_rng(SeedSequence(seed))
+        self.phi = np.zeros((N, N))
+        for i in range(N):
+            self.phi[0, i] = 1
+            self.phi[N-1, i] = 1
+            self.phi[i, 0] = 1
+            self.phi[i, N-1] = 1
+        print("Initial φ with boundary conditions:")
+        print(self.phi)
         super().__init__(
             function=self.inside_hyperspace,
             lower_bounds=[-1]*dimensions,
