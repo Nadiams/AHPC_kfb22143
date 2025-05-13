@@ -273,23 +273,24 @@ class randwalker(MonteCarloIntegrator):
         self.seed = seed
         self.dimensions = dimensions
         self.num_samples = num_samples
-
         self.rng = default_rng(SeedSequence(seed))
         self.phi = np.zeros((N, N))
-        for i in range(N):
-            self.phi[0, i] = 1
-            self.phi[N-1, i] = 1
-            self.phi[i, 0] = 1
-            self.phi[i, N-1] = 1
-        print("Initial φ with boundary conditions:")
-        print(self.phi)
+
         super().__init__(
             function=self.inside_hyperspace,
             lower_bounds=[-1]*dimensions,
             upper_bounds=[1]*dimensions,
             num_samples=num_samples
         )
+    def laplace(self):
+        for i in range(self.N):
+            self.phi[0, i] = 1
+            self.phi[self.N-1, i] = 1
+            self.phi[i, 0] = 1
+            self.phi[i, self.N-1] = 1
 
+        print("Initial φ with boundary conditions:")
+        print(self.phi)
     def random_walk_solver(self):
         N = self.N
         walkers = self.walkers
