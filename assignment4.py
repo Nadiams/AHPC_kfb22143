@@ -291,40 +291,29 @@ class randwalker(MonteCarloIntegrator):
 
         print("Initial φ with boundary conditions:")
         print(self.phi)
+
     def random_walk_solver(self):
+        self.laplace()
         N = self.N
-        walkers = self.walkers
-        max_steps = self.max_steps
-        h = self.h
-        phi = np.zeros((N, N))
         visit_count = np.zeros((N, N))
-        green = (h**2) * visit_count / walkers
-
-        for i in range(N):
-            phi[0, i] = 1
-            phi[N-1, i] = 1
-            phi[i, 0] = 1
-            phi[i, N-1] = 1
-
-        print('Initial phi with boundary conditions:')
-        print(phi)
-
-        for _ in range(walkers):
-            i, j = random.randint(1, N-2), random.randint(1, N-2)
-            for _ in range(max_steps):
-                if random.randint(0, 1):
-                    i += random.choice([-1, 1])
+       # green = (h**2) * visit_count / walkers
+        for _ in range(self.walkers):
+            i, j = self.rng.int(1, N-2), self.rng.int(1, N-2)
+            for _ in range(self.max_steps):
+                if self.rng.int(0, 1):
+                    i += self.rng.choice([-1, 1])
                 else:
-                    j += random.choice([-1, 1])
+                    j += self.rng.choice([-1, 1])
 
-                if 0 <= i < N and 0 <= j < N:
+                if 0 <= i < self.N and 0 <= j < self.N:
                     visit_count[i, j] += 1
 
-                if i == 0 or i == N-1 or j == 0 or j == N-1:
+                if i in [0, N-1] or j in [0, N-1]:
                     break
+                visit_count[i, j] += 1
 
-        green = (h**2) * visit_count / walkers
-        green_solve = np.sum(green * phi)
+        green = (self.h ** 2) * visit_count / self.walkers
+        green_solve = np.sum(green * self.phi)
 
         print("Visit count per grid point:\n", visit_count)
         print("\nEstimated Green’s function:\n", green)
