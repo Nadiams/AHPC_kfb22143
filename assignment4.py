@@ -296,19 +296,14 @@ class randwalker(MonteCarloIntegrator):
         self.laplace()
         N = self.N
         visit_count = np.zeros((N, N))
-       # green = (h**2) * visit_count / walkers
         for _ in range(self.walkers):
-            i, j = self.rng.int(1, N-2), self.rng.int(1, N-2)
+            i, j = self.rng.integers(1, N-1), self.rng.integers(1, N-1)
             for _ in range(self.max_steps):
-                if self.rng.int(0, 1):
+                if self.rng.integers(0, 2):
                     i += self.rng.choice([-1, 1])
                 else:
                     j += self.rng.choice([-1, 1])
-
-                if 0 <= i < self.N and 0 <= j < self.N:
-                    visit_count[i, j] += 1
-
-                if i in [0, N-1] or j in [0, N-1]:
+                if i in [0, self.N-1] or j in [0, self.N-1]:
                     break
                 visit_count[i, j] += 1
 
@@ -319,11 +314,10 @@ class randwalker(MonteCarloIntegrator):
         print("\nEstimated Green’s function:\n", green)
         print(f"\nGreen’s function solution (sum φ·G): {green_solve:.6f}")
 
-        return green, green_solve
+        return (green, green_solve)
 
-    def overrelaxation_with_charge(N=4, h=0.01, max_iter=1000, tol=1e-5,
+    def overrelaxation_with_charge(self, tol=1e-5,
                                    boundary_func=None, f=None):
-        phi = np.zeros((N, N))
         for i in range(N):
             phi[0,i] = boundary_func(0, i) # sets the first line, [0,i] all = 1
             phi[N-1, i] = boundary_func(N-1,  i)
