@@ -355,30 +355,43 @@ class randwalker(MonteCarloIntegrator):
             print("Final φ after relaxation:")
         print(self.phi)
         return self.phi
+class Charges_Boundary_Grids(randwalker):
+    def __init__(self, N=32, L=10):
+        self.N = N
+        self.L = L
+        self.h = L / (N - 1)
+        self.boundaries = self.get_boundary_conditions()
+        self.charges = self.get_charge_distributions()
+        self.solver = ChargeRelaxationSolver(N=N, L=L)
+    
+    def get_boundary_conditions(self):
+        def boundary_a(i, j):
+            return 1
 
-    L = 0.1 # length of the grid
-    h = L / (N - 1) # spacing
-    def boundary_a(i, j):
-        return 1  # All edges +1 V
-    
-    def boundary_b(i, j):
-        if i == 0 or i == N-1:
-            return 1  # Top and bottom +1 V
-        elif j == 0 or j == N-1:
-            return -1  # Left and right -1 V
-        return 0
-    
-    def boundary_c(i, j):
-        if i == 0:
-            return 2  # Top +2 V
-        elif i == N-1:
-            return 0  # Bottom 0 V
-        elif j == 0:
-            return 2  # Left +2 V
-        elif j == N-1:
-            return -4  # Right -4 V
-        return 0
-    
+        def boundary_b(i, j):
+            if i == 0 or i == self.N - 1:
+                return 1
+            elif j == 0 or j == self.N - 1:
+                return -1
+            return 0
+
+        def boundary_c(i, j):
+            if i == 0:
+                return 2
+            elif i == self.N - 1:
+                return 0
+            elif j == 0:
+                return 2
+            elif j == self.N - 1:
+                return -4
+            return 0
+
+        return {
+            "Case A": boundary_a,
+            "Case B": boundary_b,
+            "Case C": boundary_c
+        }
+
     boundary_conditions = [("a", boundary_a), ("b", boundary_b), ("c", boundary_c)]
     results = {}
     
@@ -443,8 +456,6 @@ print("Final φ:\n", phi_uniform)
         }
 charge_distributions(N, L)
 
-
-    
     def plot_green(green):
         """
         Plots the 2D grid showing Green's function values.
