@@ -188,6 +188,7 @@ class MonteCarloIntegrator(Error):
         plt.legend()
         plt.grid()
         plt.savefig("monte_carlo_convergence.png")
+
 class overrelaxation(MonteCarloIntegrator):
     """
             Method to solve Poissons equation.
@@ -199,10 +200,19 @@ class overrelaxation(MonteCarloIntegrator):
                  x0=0, seed=12345):
         """
         """
+        self.num_samples = num_samples
+        self.dimensions = dimensions
+        self.seed = seed
+        self.rng = default_rng(SeedSequence(self.mpi_info['rank']))
+        super().__init__(
+            function=self.inside_hyperspace,
+            lower_bounds=[-1]*dimensions,
+            upper_bounds=[1]*dimensions,
+            num_samples=num_samples
+        )
+
     def test_func(i, j):
         return i * j
-    #f = test_func()
-    #print(f)
     def overrelaxation_method(f):
         """
                 Method to solve Poissons equation.
@@ -246,24 +256,37 @@ class randwalker(MonteCarloIntegrator):
     Implement a random-walk method to solve Poisson’s equation
     for a square N × N grid, using random walkers to obtain the Green’s function.
     """
-    def __init__(self, num_samples, dimensions=1, sigma=1.0,
-                 x0=0, seed=12345):
-        """
-        """
-    def __init__(self, N=4, walkers=10000, max_steps=20000, h=1.0, seed=12345):
+    def __init__(self, N=4, walkers=10000, max_steps=20000, h=1.0, seed=12345,
+                 num_samples=1000, dimensions=1):
         self.N = N
         self.walkers = walkers
         self.max_steps = max_steps
         self.h = h
-        random.seed(seed)
-        np.random.seed(seed)
+        self.seed = seed
+        self.dimensions = dimensions
+        self.num_samples = num_samples
+
+        self.rng = default_rng(SeedSequence(seed))
+        self.phi = np.zeros((N, N))
+        for i in range(N):
+            self.phi[0, i] = 1
+            self.phi[N-1, i] = 1
+            self.phi[i, 0] = 1
+            self.phi[i, N-1] = 1
+        print("Initial φ with boundary conditions:")
+        print(self.phi)
+        super().__init__(
+            function=self.inside_hyperspace,
+            lower_bounds=[-1]*dimensions,
+            upper_bounds=[1]*dimensions,
+            num_samples=num_samples
+        )
 
     def random_walk_solver(self):
         N = self.N
         walkers = self.walkers
         max_steps = self.max_steps
         h = self.h
-
         phi = np.zeros((N, N))
         visit_count = np.zeros((N, N))
         green = (h**2) * visit_count / walkers
