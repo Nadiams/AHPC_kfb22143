@@ -13,8 +13,7 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.random import SeedSequence, default_rng
-import random
-#from mpi4py import MPI
+from mpi4py import MPI
 class Error:
     """
         Class to calculate the error (mean + variance) in parallel.
@@ -196,11 +195,9 @@ class overrelaxation(MonteCarloIntegrator):
     square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
     This will be used as an independent check for your Monte Carlo results.
     """
-    def __init__(self, N=4, walkers=10000, max_steps=20000, h=1, seed=12345,
+    def __init__(self, N=4, h=1, seed=12345,
                  num_samples=1000, dimensions=1):
         self.N = N
-        self.walkers = walkers
-        self.max_steps = max_steps
         self.h = h
         self.seed = seed
         self.dimensions = dimensions
@@ -221,45 +218,42 @@ class overrelaxation(MonteCarloIntegrator):
             self.phi[i, self.N-1] = 1
         print("Initial φ with boundary conditions:")
         print(self.phi)
+    def inside_hyperspace(self, x):
+        return 0.0
 
-    def test_func(i, j):
-        return i * j
-    def overrelaxation_method(f):
+    def overrelaxation_method(self, f, max_iter=100, tol=1e-5):
         """
                 Method to solve Poissons equation.
                 Implement a relaxation (or over-relaxation) method to solve Poisson’s equation for a
         square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
         This will be used as an independent check for your Monte Carlo results.
         """
-        omega = 2 / ( 1 + np.sin(np.pi/N) )
-        #f = 0
-    def overrelaxation_method(self, f, max_iter=100, tol=1e-5):
-        phi = self.phi.copy()
+        self.phi = self.phi.copy()
         omega = 2 / (1 + np.sin(np.pi / self.N))
 
-        for iters in range(max_iters):
-            old_phi = phi.copy()
+        for iters in range(max_iter):
+            old_phi = self.phi.copy()
             for i in range(1, self.N - 1):
                 for j in range(1, self.N - 1):
                     poisson = 1/4 * (
-                        phi[i+1, j] + phi[i-1, j] +
-                        phi[i, j+1] + phi[i, j-1] +
+                        self.phi[i+1, j] + self.phi[i-1, j] +
+                        self.phi[i, j+1] + self.phi[i, j-1] +
                         (self.h ** 2) * f(i, j)
                     )
-                    phi[i, j] = (1 - omega) * phi[i, j] + omega * poisson
-            if np.max(np.abs(phi - old_phi)) < tol:
-                print(f"Converged after {it+1} iterations.")
+                    self.phi[i, j] = (1 - omega) * self.phi[i, j] + omega * poisson
+            if np.max(np.abs(self.phi - old_phi)) < tol:
+                print(f"Converged after {iters+1} iterations.")
                 break
         print("phi after over-relaxation:")
-        print(phi)
-        return phi
-    phi=overrelaxation_method(test_func)
+        print(self.phi)
+        return self.phi
 
-    def plot_potential(phi):
+
+    def plot_potential(self):
         """
         Plots the 2D grid showing potential values for phi.
         """
-        plt.imshow(phi, origin='lower', cmap='viridis')
+        plt.imshow(self.phi, origin='lower', cmap='viridis')
         plt.colorbar(label='Potential φ')
         plt.title('Solution of Poisson’s Equation')
         plt.xlabel('x')
@@ -275,12 +269,11 @@ class randwalker(MonteCarloIntegrator):
     Implement a random-walk method to solve Poisson’s equation
     for a square N × N grid, using random walkers to obtain the Green’s function.
     """
-    def __init__(self, N=4, walkers=10000, max_steps=20000, h=1.0, seed=12345,
+    def __init__(self, N=4, walkers=10000, tol=1e-5, max_steps=20000, h=1.0, seed=12345,
                  num_samples=1000, dimensions=1, L=10):
         self.N = N
         self.walkers = walkers
         self.max_steps = max_steps
-        self.h = h
         self.L = L
         self.h = L / (N - 1)
         self.tol = tol
@@ -296,6 +289,8 @@ class randwalker(MonteCarloIntegrator):
             upper_bounds=[1]*dimensions,
             num_samples=num_samples
         )
+    def inside_hyperspace(self, x):
+        return 0.0
     def laplace(self):
         for i in range(self.N):
             self.phi[0, i] = 1
@@ -330,7 +325,7 @@ class randwalker(MonteCarloIntegrator):
 
         return (green, green_solve)
 
-    def overrelaxation_with_charge(self, tol=1e-5,
+    def solve_with_charge(self, tol=1e-5, max_iter=2000,
                                    boundary_func=None, f=None):
         self.laplace()
         N = self.N
@@ -340,31 +335,34 @@ class randwalker(MonteCarloIntegrator):
             self.phi[i, 0] = boundary_func(i, 0)
             self.phi[i, self.N - 1] = boundary_func(i, self.N - 1)
         print("Initial φ with boundary conditions:")
-        print(phi)
+        print(self.phi)
         for iteration in range(1, max_iter + 1):
-            old_phi = phi.copy()
+            old_phi = self.phi.copy()
             for i in range(1, N-1):
                 for j in range(1, N-1):
-                    phi[i,j] = 1/4 * (
+                    self.phi[i,j] = 1/4 * (
                         self.phi[i+1,j] + self.phi[i-1,j] +
-                        self.phi[i,j+1] + self.phi[i,j-1])
+                        self.phi[i,j+1] + self.phi[i,j-1] +
+                        (self.h ** 2) * f(i, j)
+                        )
             max_delta = np.max(np.abs(self.phi - old_phi))
             if max_delta < self.tol:
                 print(f"Converged after {iteration} iterations (Δφₘₐₓ = {max_delta:.2e}).")
-            break
+                break
             print("Final φ after relaxation:")
         print(self.phi)
         return self.phi
+
 class Charges_Boundary_Grids(randwalker):
     def __init__(self, N=32, L=10):
         self.N = N
         self.L = L
         self.h = L / (N - 1)
-        self.boundaries = self.get_boundary_conditions()
-        self.charges = self.get_charge_distributions()
-        self.solver = ChargeRelaxationSolver(N=N, L=L)
+        self.boundaries = self.boundary_conditions()
+        self.charges = self.charge_distribution()
+        self.solver = overrelaxation(N=N, h=self.h)
     
-    def get_boundary_conditions(self):
+    def boundary_conditions(self):
         def boundary_a(i, j):
             return 1
 
@@ -385,38 +383,24 @@ class Charges_Boundary_Grids(randwalker):
             elif j == self.N - 1:
                 return -4
             return 0
-
         return {
             "Case A": boundary_a,
             "Case B": boundary_b,
             "Case C": boundary_c
         }
-
-    boundary_conditions = [("a", boundary_a), ("b", boundary_b), ("c", boundary_c)]
-    results = {}
     
-    for label, func in boundary_conditions:
-        results[f"phi_{label}"] = overrelaxation_with_charge(N, boundary_func=func)
-
-solver = ChargeRelaxationSolver(N=4)
-phi_uniform = solver.solve_with_charge(charge_func=uniform_charge, boundary_func=boundary_a)
-
-print("Final φ:\n", phi_uniform)
-
-    def charge_distributions(N, L):
+    def charge_distribution(self):
         """
         """
-    
-        #  10 C charge, spread uniformly over the whole grid
+        N = self.N
+        L = self.L
         uniform_charge = np.zeros((N, N))
         for i in range(N):
             for j in range(N):
                 uniform_charge[i, j] = 10.0 / (L * L)
         print("\nCharge distribution: Uniform (10 C total)")
         print(uniform_charge)
-        
-        # A uniform charge gradient from the top the the bottom of the grid, where the charge
-        # density at the top of the grid is 1 Cm−2 and 0 at the bottom sites
+
         gradient_charge = np.zeros((N, N))
         for i in range(N):
             density = 1.0 - (i / (N - 1))
@@ -424,39 +408,52 @@ print("Final φ:\n", phi_uniform)
                 gradient_charge[i, j] = density
         print("\nCharge distribution: Gradient (top→bottom 1→0)")
         print(gradient_charge)
-        
-        # An exponentially decaying charge distribution, exp −2000|r|, placed at the centre of
-        # the grid.
+
         x = np.linspace(0, L, N)
         y = np.linspace(0, L, N)
         exp_charge = np.zeros((N, N))
         for i in range(N):
             for j in range(N):
-                dx = x[j] - L/2
-                dy = y[i] - L/2
+                dx = x[j] - L / 2
+                dy = y[i] - L / 2
                 r = np.sqrt(dx**2 + dy**2)
                 exp_charge[i, j] = np.exp(-2000 * r)
         print("\nCharge distribution: Exponential (centered)")
         print(exp_charge)
+
         charge_distributions = {
             "Uniform (10C)":           uniform_charge,
             "Gradient (top→bottom)":   gradient_charge,
             "Exponential (centered)":  exp_charge
         }
-        points = {
-            "(5,5) cm":    (16, 16),
-            "(2.5,2.5) cm":(8,   8),
-            "(0.1,2.5) cm":(8,   0),
-            "(0.1,0.1) cm":(0,   0)
-        }
-        boundary_conditions = {
-            "Case A": boundary_a,
-            "Case B": boundary_b,
-            "Case C":        boundary_c
-        }
-charge_distributions(N, L)
 
-    def plot_green(green):
+        return charge_distributions
+
+    def points_in_charge_dist(self):
+        results = {}
+        for bc_label, bc_func in self.boundaries.items():
+            for charge_label, charge_array in self.charges.items():
+                def f(i, j):
+                    return charge_array[i, j]
+
+                print(f"\nRunning: {charge_label} + {bc_label}")
+                phi = self.solver.solve_with_charge(charge_func=f, boundary_func=bc_func)
+                key = f"{charge_label} + {bc_label}"
+                results[key] = phi
+                print(f"Finished: {key}\n")
+        return results
+
+    def evaluate_points(self, green, grid_size=10):
+        N = green.shape[0]
+        grid_spacing = grid_size / (N - 1)
+        for x, y in [(5,5),(2.5,2.5),(0.1,2.5),(0.1,0.1)]:
+            i = int(round(y / grid_spacing))
+            j = int(round(x / grid_spacing))
+            val = green[i, j]
+            print(f"G({x},{y}) into grid[{i},{j}] = {val:.4f}")
+
+
+    def plot_green(self, green):
         """
         Plots the 2D grid showing Green's function values.
         """
@@ -466,11 +463,8 @@ charge_distributions(N, L)
         plt.xlabel('x')
         plt.ylabel('y')
         plt.show()
-    green = green / np.max(green) 
-    plot_potential(phi)
-    plot_green(green)
 
-    def plot_green_at_points(green, grid_size=10):
+    def plot_green_at_points(self, green, grid_size=10):
         N = green.shape[0]
         grid_spacing = grid_size / (N - 1)
         grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
@@ -490,20 +484,17 @@ charge_distributions(N, L)
         plt.ylabel("y (grid index) cm")
         plt.show()
 
-        def evaluate_green_points(green, grid_size=10):
-            N = green.shape[0]
-            grid_spacing = grid_size / (N - 1)
-            grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
-            for x, y in grid_points:
-                i = int(round(y / grid_spacing))
-                j = int(round(x / grid_spacing))
-                value = green[i, j]
-                print(f"Green's function at ({x} cm, {y} cm) grid[{i}, {j}] = {value:.4f}")
-plot_green_at_points(green)
-
 if __name__ == "__main__":
-    solver = RandWalker()
+    solver = randwalker()
     green, green_solve = solver.random_walk_solver()
+    rank = MPI.COMM_WORLD.Get_rank()
 
+    if rank == 0:
+        print("Charge Relaxation-Green's Simulation\n")
+        sim = Charges_Boundary_Grids(N=4, L=10)
+        all_fields = sim.points_in_charge_dist()
+        for label, phi in all_fields.items():
+            print(f"\nEvaluating potential field: {label}")
+            sim.evaluate_points(phi)
 
-
+    MPI.Finalize()
