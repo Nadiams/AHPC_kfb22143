@@ -112,49 +112,48 @@ class MonteCarloIntegrator(Error):
             Error class.
             Returns:
                 The value computed by the integral.
-		"""
+        """
         region_samples = self.params['num_samples'] // self.mpi_info['size']
-        samples = self.rng.uniform(
-            self.params['bounds']['lower'],
-            self.params['bounds']['upper'],
-            (region_samples, self.params['dimensions'])
-        )
-        function_values = np.array(
-            [fx
-             for fx in (self.params['function'](x) for x in samples)
-             if fx is not None],
-            dtype=np.float64
-        )
-        function_values = function_values[np.isfinite(function_values)]
+        function_values = []
+        for _ in range(region_samples):
+            _, hit = self.perform_single_walk()
+            if hit is not None:
+                function_values.append(hit)
+        function_values = np.array(function_values, dtype=np.float64)
+    
         if function_values.size > 0:
             initial_mean = np.mean(function_values)
             initial_variance = np.var(function_values, ddof=1)
         else:
             initial_mean, initial_variance = 0, 0
-        initial_integral = self.params['volume'] * initial_mean
+        initial_integral = initial_mean
+    
         total_samples = self.mpi_info['comm'].allreduce(
-            region_samples, op=MPI.SUM
+            len(function_values), op=MPI.SUM
         )
         combined_integral = self.mpi_info['comm'].allreduce(
-            initial_integral, op=MPI.SUM
-        ) / self.mpi_info['size']
-
+            initial_integral * len(function_values), op=MPI.SUM
+        )
+        combined_integral = combined_integral / total_samples if total_samples > 0 else 0
+    
         combined_variance = self.mpi_info['comm'].allreduce(
-            initial_variance, op=MPI.SUM
-        ) / self.mpi_info['size']
-        error_object = Error(total_samples,  combined_integral,  combined_variance)
+            initial_variance * (len(function_values) - 1), op=MPI.SUM
+        )
+        combined_variance = combined_variance / (total_samples - 1) if total_samples > 1 else 0
+    
+        error_object = Error(total_samples, combined_integral, combined_variance)
         standard_error = error_object.compute_error()
+    
         if self.mpi_info['rank'] == 0:
-            print("\n================ Monte Carlo Integration ===============")
-            print(f"Final {self.params['dimensions']}D Integral: "
-                  f"{ combined_integral:.6f}")
-            print(f"Estimated Variance: { combined_variance:.6f}")
+            print("\n================ Monte Carlo Random Walk ===============")
+            print(f"Final Estimate: {combined_integral:.6f}")
+            print(f"Estimated Variance: {combined_variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
-            if  combined_integral == 0:
+            if combined_integral == 0:
                 print("Error: Integral computed as 0!")
             print("========================================================\n")
-
-            return  combined_integral,  combined_variance, standard_error
+    
+            return combined_integral, combined_variance, standard_error
         return None, None, None
 
     def plot_monte_carlo_convergence(self):
@@ -258,6 +257,7 @@ class overrelaxation(MonteCarloIntegrator):
         plt.title('Solution of Poisson’s Equation')
         plt.xlabel('x')
         plt.ylabel('y')
+        plt.savefig("phi.png")
         plt.show()
 
 # Task 2
@@ -347,7 +347,7 @@ class randwalker(MonteCarloIntegrator):
                         )
             max_delta = np.max(np.abs(self.phi - old_phi))
             if max_delta < self.tol:
-                print(f"Converged after {iteration} iterations (Δφₘₐₓ = {max_delta:.2e}).")
+                print(f"Converged after {iteration} iterations (Δφ = {max_delta:.2e}).")
                 break
             print("Final φ after relaxation:")
         print(self.phi)
@@ -437,9 +437,9 @@ class Charges_Boundary_Grids(randwalker):
                     return charge_array[i, j]
 
                 print(f"\nRunning: {charge_label} + {bc_label}")
-                phi = self.solver.solve_with_charge(charge_func=f, boundary_func=bc_func)
+                self.phi = self.solver.solve_with_charge(charge_func=f, boundary_func=bc_func)
                 key = f"{charge_label} + {bc_label}"
-                results[key] = phi
+                results[key] = self.phi
                 print(f"Finished: {key}\n")
         return results
 
@@ -452,6 +452,35 @@ class Charges_Boundary_Grids(randwalker):
             val = green[i, j]
             print(f"G({x},{y}) into grid[{i},{j}] = {val:.4f}")
 
+    def solve_with_charge(self, boundary_func=None, f=None, tol=1e-5, max_iter=2000):
+        self.laplace()
+        N = self.N
+        for i in range(N):
+            self.phi[0, i] = boundary_func(0, i)
+            self.phi[N - 1, i] = boundary_func(N - 1, i)
+            self.phi[i, 0] = boundary_func(i, 0)
+            self.phi[i, N - 1] = boundary_func(i, N - 1)
+    
+        print("Initial φ with boundary conditions:")
+        print(self.phi)
+    
+        for iteration in range(1, max_iter + 1):
+            old_phi = self.phi.copy()
+            for i in range(1, N - 1):
+                for j in range(1, N - 1):
+                    self.phi[i, j] = 1/4 * (
+                        self.phi[i+1, j] + self.phi[i-1, j] +
+                        self.phi[i, j+1] + self.phi[i, j-1] +
+                        (self.h ** 2) * f(i, j)
+                    )
+            max_delta = np.max(np.abs(self.phi - old_phi))
+            if max_delta < tol:
+                print(f"Converged after {iteration} iterations (Δφ = {max_delta:.2e}).")
+                break
+    
+        print("Final φ after relaxation:")
+        print(self.phi)
+        return self.phi
 
     def plot_green(self, green):
         """
@@ -462,6 +491,7 @@ class Charges_Boundary_Grids(randwalker):
         plt.title('Solution of Poisson’s Equation (Green\'s Function)')
         plt.xlabel('x')
         plt.ylabel('y')
+        plt.savefig("plotgreen.png")
         plt.show()
 
     def plot_green_at_points(self, green, grid_size=10):
@@ -482,6 +512,7 @@ class Charges_Boundary_Grids(randwalker):
                      color='white', fontsize=5)
         plt.xlabel("x (grid index) cm")
         plt.ylabel("y (grid index) cm")
+        plt.savefig("plotgreenatpoints.png")
         plt.show()
 
 if __name__ == "__main__":
