@@ -212,11 +212,11 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
         self.rng = default_rng(SeedSequence(seed + self.rank))
 
     def greens_walker(self, start):
-        local_walkers = self.params['num_samples'] // self.mpi_info['size']
-        visits = np.zeros(local_walkers, int)
+        initial_walkers = self.params['num_samples'] // self.mpi_info['size']
+        visits = np.zeros(initial_walkers, int)
         i0, j0 = start
     
-        for w in range(local_walkers):
+        for w in range(initial_walkers):
             i, j = i0, j0
             count = 0
             steps = 0
@@ -318,13 +318,13 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
     def potential_from_green(self, greens_matrix, points):
         N, h = self.N, self.h
         results = {}
-        for bc_label, bc_func in self.boundaries.items():
+        for boundaryconditions_label, boundaryconditions_func in self.boundaries.items():
             phi_b = np.zeros((N, N))
             for i in range(N):
                 for j in range(N):
-                    phi_b[i, j] = bc_func(i, j)
+                    phi_b[i, j] = boundaryconditions_func(i, j)
             for charge_label, charge_array in self.charges.items():
-                key = f"{charge_label} + {bc_label}"
+                key = f"{charge_label} + {boundaryconditions_label}"
                 potentials = {}
                 for x, y in points:
                     i0 = self.coords_to_index(y)
@@ -360,19 +360,18 @@ def plot_green_at_points(green, grid_size=10):
     plt.imshow(green, origin='lower', cmap='viridis', extent=[0, N-1, 0, N-1])
     plt.colorbar(label="Green's function")
     plt.title("Green's Function at Grid Points")
+    plt.savefig("Greens_colourmap")
 
-    for x_pos, y_pos in grid_points:
-        j_index = int(round(x_pos / grid_spacing))
-        i_index = int(round(y_pos / grid_spacing))
+    for x_position, y_position in grid_points:
+        j_index = int(round(x_position / grid_spacing))
+        i_index = int(round(y_position / grid_spacing))
 
         plt.plot(j_index, i_index, 'ro')
-
-        label = f"({x_pos:.1f},{y_pos:.1f}) cm"
+        label = f"({x_position:.1f},{y_position:.1f}) cm"
         plt.text(j_index + 0.3, i_index + 0.3, label, color='white', fontsize=8)
-
     plt.xlabel("x (grid index)")
     plt.ylabel("y (grid index)")
-    plt.grid(False)
+    plt.grid()
     plt.tight_layout()
     plt.savefig("plotgreenatpoints.png")
     plt.show()
