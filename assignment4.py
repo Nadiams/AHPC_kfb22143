@@ -483,38 +483,6 @@ class Charges_Boundary_Grids(randwalker):
         print(self.phi)
         return self.phi
 
-    def plot_green(self, green):
-        """
-        Plots the 2D grid showing Green's function values.
-        """
-        plt.imshow(green, origin='lower', cmap='viridis')
-        plt.colorbar(label='Green\'s function')
-        plt.title('Solution of Poisson’s Equation (Green\'s Function)')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.savefig("plotgreen.png")
-        plt.show()
-
-    def plot_green_at_points(self, green, grid_size=10):
-        N = green.shape[0]
-        grid_spacing = grid_size / (N - 1)
-        grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
-        plt.imshow(green, origin='lower', cmap='viridis')
-        plt.colorbar(label="Green's function")
-        plt.title("Green's Function at Grid Points")
-        for point in grid_points:
-            x_position = point[0]
-            y_position = point[1]
-            j_index = int(round(x_position / grid_spacing))
-            i_index = int(round(y_position / grid_spacing))
-            plt.plot(j_index, i_index, 'ro')
-            label = f"({x_position:.1f},{y_position:.1f}) cm"
-            plt.text(j_index + 0.5, i_index + 0.5, label,
-                     color='white', fontsize=5)
-        plt.xlabel("x (grid index) cm")
-        plt.ylabel("y (grid index) cm")
-        plt.savefig("plotgreenatpoints.png")
-        plt.show()
 
 if __name__ == "__main__":
     solver = randwalker()

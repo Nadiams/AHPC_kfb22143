@@ -9,43 +9,52 @@ Created on Tue Mar 18 12:32:13 2025
 
 @author: nadia
 """
-import copy
+
 import numpy as np
-import matplotlib.pyplot as plt
-from numpy.random import SeedSequence, default_rng
+
 # Task 1
-# f(i,j) = 0 everywhere
-def f_zero(i, j):
+def zero_charge(_i, _j):
+    """
+        Zero charge distribution
+        Returns:
+                0
+    """
     return 0
-def overrelaxation_method(f_func, N=100, h=1.0, omega=None, max_iter=10000, tol=1e-5, top=1, bottom=1, left=1, right=1):
+
+def overrelaxation_method(f_func, n=100, spacing=1, omega=None,
+                          max_iter=10000, tol=1e-5,
+                          top=1, bottom=1, left=1, right=1):
     """
     Over-relaxation solver for Poisson's equation on a square grid.
     Args:
         f_func: function f(i,j) represents the charge distribution
-        N: grid size
-        h: grid spacing
+        n: grid size (N)
+        spacing: grid spacing (h)
         omega: optimum relaxation factor
         max_iter: maximum number of iterations
         tol: tolerance of the convergence (limit)
+        top, bottom, left, right: boundary values
     Returns:
         phi: final potential of the grid
     """
-    phi = np.zeros((N, N))
-    omega = 2 / (1 + np.sin(np.pi / N))
-    phi[0, :] = 1
-    phi[-1, :] = 1
-    phi[:, 0] = 1
-    phi[:, -1] = 1
+    phi = np.zeros((n, n))
+    omega = 2 / (1 + np.sin(np.pi / n)) if omega is None else omega
+    phi[0, :] = top
+    phi[-1, :] = bottom
+    phi[:, 0] = left
+    phi[:, -1] = right
 
-    for iteration in range(max_iter):
+    for _ in range(max_iter):
         old_phi = phi.copy()
-        for i in range(1, N - 1):
-            for j in range(1, N - 1):
+        for i in range(1, n - 1):
+            for j in range(1, n - 1):
                 f_ij = f_func(i, j)
-                surrounding_phi_average = 1/4 * (
-                    phi[i+1, j] + phi[i-1, j] + phi[i, j+1] + phi[i, j-1]
+                avg_neighbors = 0.25 * (
+                    phi[i + 1, j] + phi[i - 1, j] +
+                    phi[i, j + 1] + phi[i, j - 1]
                 )
-                phi[i, j] = omega * (h**2 * f_ij + surrounding_phi_average) + (1 - omega) * old_phi[i, j]
+                phi[i, j] = omega * (spacing**2 * f_ij + avg_neighbors) + \
+                            (1 - omega) * old_phi[i, j]
 
         max_change = np.max(np.abs(phi - old_phi))
         if max_change < tol:
@@ -53,42 +62,56 @@ def overrelaxation_method(f_func, N=100, h=1.0, omega=None, max_iter=10000, tol=
             break
 
     return phi
+phi = overrelaxation_method(zero_charge)
 
-phi = overrelaxation_method(f_zero)
-
-# Task 5
-
-L = 10.0
+# Task 5 setup
+LENGTH = 10
 N = 100
-h = L / (N - 1)
+GRID_SPACING = LENGTH / (N - 1)
 
-def zero_charge(i, j):
-    return 0.0
+def zero_charge(_i, _j):
+    """
+        Zero charge distribution
+        Returns:
+                0
+    """
+    return 0
 
-def uniform_charge(i, j):
-    return 10.0
+def uniform_charge(_i, _j):
+    """
+        Uniform charge distribution.
+    """
+    return 10
 
-def gradient_charge(i, j):
+def gradient_charge(i, _j):
+    """
+        Linear gradient from  1 cm^−2 top to 0 cm^-2bottom.
+    """
     return (N - 1 - i) / (N - 1)
 
 def exp_charge(i, j):
-    y= i * h
-    x = j * h
-    center_x, center_y = L / 2, L / 2
-    r = np.sqrt((x - center_x)**2 + (y - center_y)**2)
-    return np.exp(-2000 * r)
+    """
+        exp −2000|r| decay from the center.
+    """
+    y = i * GRID_SPACING
+    x = j * GRID_SPACING
+    center_x, center_y = LENGTH / 2, LENGTH / 2
+    r = np.sqrt((x - center_x) ** 2 + (y - center_y) ** 2)
+    return np.sum(np.exp(-2000 * r))
 
 charge_distributions = {
-        "Uniform (10C)": uniform_charge,
-        "Gradient (top→bottom)": gradient_charge,
-        "Exponential (centered)": exp_charge
-        }
-points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+    "Uniform (10C)": uniform_charge,
+    "Gradient (top→bottom)": gradient_charge,
+    "Exponential (centered)": exp_charge
+}
 
-def coords_to_index(x, y, h):
-    i = int(round(y / h))
-    j = int(round(x / h))
-    return i, j
+sample_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+
+def coords_to_index(x_val, y_val, spacing_val):
+    """Convert physical coordinates to grid indices."""
+    i_idx = int(round(y_val / spacing_val))
+    j_idx = int(round(x_val / spacing_val))
+    return i_idx, j_idx
 
 boundary_conditions = {
     "1st boundary condition": {'top': 1, 'bottom': 1, 'left': 1, 'right': 1},
@@ -98,26 +121,26 @@ boundary_conditions = {
 
 results = []
 
-for boundary_name, boundary_values in boundary_conditions.items():
-    for charge_name, charge_function in charge_distributions.items():
-        potential_grid = overrelaxation_method(
-            f_func=charge_function,
-            N=N,
-            h=h,
-            top=boundary_values['top'],
-            bottom=boundary_values['bottom'],
-            left=boundary_values['left'],
-            right=boundary_values['right']
+for boundary_name, bc_values in boundary_conditions.items():
+    for charge_name, charge_func in charge_distributions.items():
+        potential = overrelaxation_method(
+            f_func=charge_func,
+            n=N,
+            spacing=GRID_SPACING,
+            top=bc_values['top'],
+            bottom=bc_values['bottom'],
+            left=bc_values['left'],
+            right=bc_values['right']
         )
 
-        for point in points:
-            row_index, col_index = coords_to_index(*point, h)
+        for point in sample_points:
+            i_idx, j_idx = coords_to_index(*point, GRID_SPACING)
             results.append((
                 f"{boundary_name}, {charge_name}",
                 point,
-                potential_grid[row_index, col_index]
+                potential[i_idx, j_idx]
             ))
 
 print("Condition Location (cm) Potential (V)")
-for description, point, potential in results:
-    print(f"{description} {point} {potential:.4e}")
+for desc, pt, pot in results:
+    print(f"{desc} {pt} {pot:.4f}")
