@@ -191,7 +191,15 @@ class MonteCarloIntegrator(Error):
         plt.savefig("monte_carlo_convergence.png")
 
 class RandomWalkGreenSolver(MonteCarloIntegrator):
+    """
+        Class to create walkers who follow a random path with specific
+	start points, boundaries and charges acting on them.
+    """
     def __init__(self, N, L, walkers, max_steps, seed=12345):
+	"""
+            Initialised variables to inherit them from the
+	    Monte Carlo (Error) Class.
+	"""
         lower_bounds = [0, 0]
         upper_bounds = [L, L]
         super().__init__(
@@ -212,6 +220,16 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
         self.rng = default_rng(SeedSequence(seed + self.rank))
 
     def greens_walker(self, start):
+	"""
+            Function of the walker in Green's function to use random
+	    sampling to follow a path starting from a specific point.
+            Args:
+	        self,
+	        start
+	    Returns:
+                    the mean visit count of green's function,
+		    the error (standard deviation) of this mean.
+        """
         initial_walkers = self.params['num_samples'] // self.mpi_info['size']
         visits = np.zeros(initial_walkers, int)
         i0, j0 = start
@@ -245,7 +263,15 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
             return greens_mean, self.compute_error()
 
 class Charges_Boundary_Grids(RandomWalkGreenSolver):
+	"""
+            Class to define boundary conditions, charge distributions
+	    and start points.
+	"""
     def __init__(self, N=5, L=10):
+"""
+            Initialised variables to inherit them from the
+	    random walker class (Monte Carlo(Error)).
+	"""
         self.N = N
         self.L = L
         self.h = L / (N - 1)
@@ -253,10 +279,21 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
         self.charges = self.charge_distribution()
 
     def boundary_conditions(self):
+        """
+            Defined boundary conditions in functions to create a 
+	    loop for each point. A while loop may have been better.
+	"""
+
         def boundary_a(i, j):
+        """
+            Set the first boundary condition.
+	"""
             return 1
 
         def boundary_b(i, j):
+        """
+            Set the second boundary condition.
+	"""
             if i == 0 or i == self.N - 1:
                 return 1
             elif j == 0 or j == self.N - 1:
@@ -264,6 +301,9 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
             return 0
 
         def boundary_c(i, j):
+        """
+            Set the last boundary condition.
+	"""
             if i == 0:
                 return 2
             elif i == self.N - 1:
@@ -281,6 +321,9 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
         }
 
     def charge_distribution(self):
+        """
+            Set the three different charge distributions.
+	"""
         N = self.N
         L = self.L
         uniform_charge = np.zeros((N, N))
@@ -306,16 +349,30 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
 
         charge_distributions = {
             "Uniform (10C)": uniform_charge,
-            "Gradient (top→bottom)": gradient_charge,
+            "Gradient (top to bottom)": gradient_charge,
             "Exponential (centered)": exp_charge
         }
 
         return charge_distributions
 
     def coords_to_index(self, x):
+        """
+            To obtain better results, increased the grid size.
+	    Had to convert the coordinates of the specific points
+            into indexes of the grid/matrix.
+	"""
         return int(round(x / self.h))
 
     def potential_from_green(self, greens_matrix, points):
+        """
+            Function to find the Green's function potential output.
+	    Args:
+                 self,
+		 greens_matrix,
+                 points.
+	    Returns:
+                 results of green's function.
+	"""
         N, h = self.N, self.h
         results = {}
         for boundaryconditions_label, boundaryconditions_func in self.boundaries.items():
