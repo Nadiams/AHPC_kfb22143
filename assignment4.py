@@ -121,14 +121,14 @@ class MonteCarloIntegrator(Error):
             if hit is not None:
                 function_values.append(hit)
         function_values = np.array(function_values, dtype=np.float64)
-    
+
         if function_values.size > 0:
             initial_mean = np.mean(function_values)
             initial_variance = np.var(function_values, ddof=1)
         else:
             initial_mean, initial_variance = 0, 0
         initial_integral = initial_mean
-    
+
         total_samples = self.mpi_info['comm'].allreduce(
             len(function_values), op=MPI.SUM
         )
@@ -136,15 +136,17 @@ class MonteCarloIntegrator(Error):
             initial_integral * len(function_values), op=MPI.SUM
         )
         combined_integral = combined_integral / total_samples if total_samples > 0 else 0
-    
+
         combined_variance = self.mpi_info['comm'].allreduce(
             initial_variance * (len(function_values) - 1), op=MPI.SUM
         )
         combined_variance = combined_variance / (total_samples - 1) if total_samples > 1 else 0
-    
-        error_object = Error(total_samples, combined_integral, combined_variance)
-        standard_error = error_object.compute_error()
-    
+
+        self.n_samples = total_samples
+        self.mean = combined_integral
+        self.variance = combined_variance
+        standard_error = self.compute_error()
+
         if self.mpi_info['rank'] == 0:
             print("\n================ Monte Carlo Random Walk ===============")
             print(f"Final Estimate: {combined_integral:.6f}")
@@ -153,7 +155,7 @@ class MonteCarloIntegrator(Error):
             if combined_integral == 0:
                 print("Error: Integral computed as 0!")
             print("========================================================\n")
-    
+
             return combined_integral, combined_variance, standard_error
         return None, None, None
 
@@ -188,181 +190,68 @@ class MonteCarloIntegrator(Error):
         plt.grid()
         plt.savefig("monte_carlo_convergence.png")
 
-class overrelaxation(MonteCarloIntegrator):
-    """
-            Method to solve Poissons equation.
-            Implement a relaxation (or over-relaxation) method to solve Poisson’s equation for a
-    square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
-    This will be used as an independent check for your Monte Carlo results.
-    """
-    def __init__(self, N=4, h=1, seed=12345,
-                 num_samples=1000, dimensions=1):
-        self.N = N
-        self.h = h
-        self.seed = seed
-        self.dimensions = dimensions
-        self.num_samples = num_samples
-        self.rng = default_rng(SeedSequence(seed))
-        self.phi = np.zeros((N, N))
+class RandomWalkGreenSolver(MonteCarloIntegrator):
+    def __init__(self, N, L, walkers, max_steps, seed=12345):
+        lower_bounds = [0, 0]
+        upper_bounds = [L, L]
         super().__init__(
-            function=self.inside_hyperspace,
-            lower_bounds=[-1]*dimensions,
-            upper_bounds=[1]*dimensions,
-            num_samples=num_samples
+            function=None,
+            lower_bounds=lower_bounds,
+            upper_bounds=upper_bounds,
+            num_samples=walkers
         )
-    def laplace(self):
-        for i in range(self.N):
-            self.phi[0, i] = 1
-            self.phi[self.N-1, i] = 1
-            self.phi[i, 0] = 1
-            self.phi[i, self.N-1] = 1
-        print("Initial φ with boundary conditions:")
-        print(self.phi)
-    def inside_hyperspace(self, x):
-        return 0.0
 
-    def overrelaxation_method(self, f, max_iter=100, tol=1e-5):
-        """
-                Method to solve Poissons equation.
-                Implement a relaxation (or over-relaxation) method to solve Poisson’s equation for a
-        square N × N grid, with a grid spacing of h and specified charges at the grid sites (f ).
-        This will be used as an independent check for your Monte Carlo results.
-        """
-        self.phi = self.phi.copy()
-        omega = 2 / (1 + np.sin(np.pi / self.N))
-
-        for iters in range(max_iter):
-            old_phi = self.phi.copy()
-            for i in range(1, self.N - 1):
-                for j in range(1, self.N - 1):
-                    poisson = 1/4 * (
-                        self.phi[i+1, j] + self.phi[i-1, j] +
-                        self.phi[i, j+1] + self.phi[i, j-1] +
-                        (self.h ** 2) * f(i, j)
-                    )
-                    self.phi[i, j] = (1 - omega) * self.phi[i, j] + omega * poisson
-            if np.max(np.abs(self.phi - old_phi)) < tol:
-                print(f"Converged after {iters+1} iterations.")
-                break
-        print("phi after over-relaxation:")
-        print(self.phi)
-        return self.phi
-
-
-    def plot_potential(self):
-        """
-        Plots the 2D grid showing potential values for phi.
-        """
-        plt.imshow(self.phi, origin='lower', cmap='viridis')
-        plt.colorbar(label='Potential φ')
-        plt.title('Solution of Poisson’s Equation')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.savefig("phi.png")
-        plt.show()
-
-# Task 2
-
-# Random Walk Solver for Poisson's Equation (Green's Function)
-
-class randwalker(MonteCarloIntegrator):
-    """
-    Implement a random-walk method to solve Poisson’s equation
-    for a square N × N grid, using random walkers to obtain the Green’s function.
-    """
-    def __init__(self, N=4, walkers=10000, tol=1e-5, max_steps=20000, h=1.0, seed=12345,
-                 num_samples=1000, dimensions=1, L=10):
         self.N = N
-        self.walkers = walkers
-        self.max_steps = max_steps
         self.L = L
         self.h = L / (N - 1)
-        self.tol = tol
-        self.seed = seed
-        self.dimensions = dimensions
-        self.num_samples = num_samples
-        self.rng = default_rng(SeedSequence(seed))
-        self.phi = np.zeros((N, N))
+        self.max_steps = max_steps
 
-        super().__init__(
-            function=self.inside_hyperspace,
-            lower_bounds=[-1]*dimensions,
-            upper_bounds=[1]*dimensions,
-            num_samples=num_samples
-        )
-    def inside_hyperspace(self, x):
-        return 0.0
-    def laplace(self):
-        for i in range(self.N):
-            self.phi[0, i] = 1
-            self.phi[self.N-1, i] = 1
-            self.phi[i, 0] = 1
-            self.phi[i, self.N-1] = 1
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
+        self.rng = default_rng(SeedSequence(seed + self.rank))
 
-        print("Initial φ with boundary conditions:")
-        print(self.phi)
-
-    def random_walk_solver(self):
-        self.laplace()
-        N = self.N
-        visit_count = np.zeros((N, N))
-        for _ in range(self.walkers):
-            i, j = self.rng.integers(1, N-1), self.rng.integers(1, N-1)
-            for _ in range(self.max_steps):
-                if self.rng.integers(0, 2):
+    def greens_walker(self, start):
+        local_walkers = self.params['num_samples'] // self.mpi_info['size']
+        visits = np.zeros(local_walkers, int)
+        i0, j0 = start
+    
+        for w in range(local_walkers):
+            i, j = i0, j0
+            count = 0
+            steps = 0
+            while steps < self.max_steps:
+                if self.rng.random() < 0.5:
                     i += self.rng.choice([-1, 1])
                 else:
                     j += self.rng.choice([-1, 1])
-                if i in [0, N-1] or j in [0, N-1]:
+                steps += 1
+                if (i, j) == (i0, j0):
+                    count += 1
+                if i in (0, self.N - 1) or j in (0, self.N - 1):
                     break
-                visit_count[i, j] += 1
+            visits[w] = count
+        allv = None
+        if self.rank == 0:
+            allv = np.empty(self.params['num_samples'], int)
+        self.comm.Gather(visits, allv, root=0)
+    
+        if self.rank == 0:
+            mean_vis = allv.mean()
+            var_vis  = allv.var(ddof=1)
+            greens_mean   = self.h**2 * mean_vis
+            self.mean     = greens_mean
+            self.variance = self.h**4 * var_vis
+            return greens_mean, self.compute_error()
 
-        green = (self.h ** 2) * visit_count / self.walkers
-        green_solve = np.sum(green * self.phi)
-
-        print("Visit count per grid point:\n", visit_count)
-        print("\nEstimated Green’s function:\n", green)
-        print(f"\nGreen’s function solution (sum φ·G): {green_solve:.6f}")
-
-        return (green, green_solve)
-
-    def solve_with_charge(self, tol=1e-5, max_iter=2000,
-                                   boundary_func=None, f=None):
-        self.laplace()
-        N = self.N
-        for i in range(self.N):
-            self.phi[0, i] = boundary_func(0, i)
-            self.phi[self.N - 1, i] = boundary_func(self.N - 1, i)
-            self.phi[i, 0] = boundary_func(i, 0)
-            self.phi[i, self.N - 1] = boundary_func(i, self.N - 1)
-        print("Initial φ with boundary conditions:")
-        print(self.phi)
-        for iteration in range(1, max_iter + 1):
-            old_phi = self.phi.copy()
-            for i in range(1, N-1):
-                for j in range(1, N-1):
-                    self.phi[i,j] = 1/4 * (
-                        self.phi[i+1,j] + self.phi[i-1,j] +
-                        self.phi[i,j+1] + self.phi[i,j-1] +
-                        (self.h ** 2) * f(i, j)
-                        )
-            max_delta = np.max(np.abs(self.phi - old_phi))
-            if max_delta < self.tol:
-                print(f"Converged after {iteration} iterations (Δφ = {max_delta:.2e}).")
-                break
-            print("Final φ after relaxation:")
-        print(self.phi)
-        return self.phi
-
-class Charges_Boundary_Grids(randwalker):
-    def __init__(self, N=32, L=10):
+class Charges_Boundary_Grids(RandomWalkGreenSolver):
+    def __init__(self, N=5, L=10):
         self.N = N
         self.L = L
         self.h = L / (N - 1)
         self.boundaries = self.boundary_conditions()
         self.charges = self.charge_distribution()
-        self.solver = overrelaxation(N=N, h=self.h)
-    
+
     def boundary_conditions(self):
         def boundary_a(i, j):
             return 1
@@ -384,31 +273,26 @@ class Charges_Boundary_Grids(randwalker):
             elif j == self.N - 1:
                 return -4
             return 0
+
         return {
             "Case A": boundary_a,
             "Case B": boundary_b,
             "Case C": boundary_c
         }
-    
+
     def charge_distribution(self):
-        """
-        """
         N = self.N
         L = self.L
         uniform_charge = np.zeros((N, N))
         for i in range(N):
             for j in range(N):
                 uniform_charge[i, j] = 10.0 / (L * L)
-        print("\nCharge distribution: Uniform (10 C total)")
-        print(uniform_charge)
 
         gradient_charge = np.zeros((N, N))
         for i in range(N):
             density = 1.0 - (i / (N - 1))
             for j in range(N):
                 gradient_charge[i, j] = density
-        print("\nCharge distribution: Gradient (top→bottom 1→0)")
-        print(gradient_charge)
 
         x = np.linspace(0, L, N)
         y = np.linspace(0, L, N)
@@ -418,83 +302,118 @@ class Charges_Boundary_Grids(randwalker):
                 dx = x[j] - L / 2
                 dy = y[i] - L / 2
                 r = np.sqrt(dx**2 + dy**2)
-                exp_charge[i, j] = np.exp(-2000 * r)
-        print("\nCharge distribution: Exponential (centered)")
-        print(exp_charge)
+                exp_charge[i, j] = np.sum(np.exp(-2000 * r))
 
         charge_distributions = {
-            "Uniform (10C)":           uniform_charge,
-            "Gradient (top→bottom)":   gradient_charge,
-            "Exponential (centered)":  exp_charge
+            "Uniform (10C)": uniform_charge,
+            "Gradient (top→bottom)": gradient_charge,
+            "Exponential (centered)": exp_charge
         }
 
         return charge_distributions
 
-    def points_in_charge_dist(self):
+    def coords_to_index(self, x):
+        return int(round(x / self.h))
+
+    def potential_from_green(self, greens_matrix, points):
+        N, h = self.N, self.h
         results = {}
         for bc_label, bc_func in self.boundaries.items():
+            phi_b = np.zeros((N, N))
+            for i in range(N):
+                for j in range(N):
+                    phi_b[i, j] = bc_func(i, j)
             for charge_label, charge_array in self.charges.items():
-                def f(i, j):
-                    return charge_array[i, j]
-
-                print(f"\nRunning: {charge_label} + {bc_label}")
-                self.phi = self.solver.solve_with_charge(charge_func=f, boundary_func=bc_func)
                 key = f"{charge_label} + {bc_label}"
-                results[key] = self.phi
-                print(f"Finished: {key}\n")
+                potentials = {}
+                for x, y in points:
+                    i0 = self.coords_to_index(y)
+                    j0 = self.coords_to_index(x)
+                    Q_sum = 0.0
+                    for i in range(1, N - 1):
+                        for j in range(1, N - 1):
+                            Q_sum += greens_matrix[i0, j0, i, j] * charge_array[i, j] * h * h
+                    B_sum = 0.0
+                    for j in range(N):
+                        B_sum += greens_matrix[i0, j0, 0, j] * phi_b[0, j]
+                        B_sum += greens_matrix[i0, j0, N - 1, j] * phi_b[N - 1, j]
+                    for i in range(1, N - 1):
+                        B_sum += greens_matrix[i0, j0, i, 0] * phi_b[i, 0]
+                        B_sum += greens_matrix[i0, j0, i, N - 1] * phi_b[i, N - 1]
+                    potentials[(x, y)] = Q_sum + B_sum
+                results[key] = potentials
         return results
 
-    def evaluate_points(self, green, grid_size=10):
-        N = green.shape[0]
-        grid_spacing = grid_size / (N - 1)
-        for x, y in [(5,5),(2.5,2.5),(0.1,2.5),(0.1,0.1)]:
-            i = int(round(y / grid_spacing))
-            j = int(round(x / grid_spacing))
-            val = green[i, j]
-            print(f"G({x},{y}) into grid[{i},{j}] = {val:.4f}")
+def plot_green_at_points(green, grid_size=10):
+    """
+        Plot of green's function with specific points.
+    
+        Args:
+        2D array of Green's function outputs,
+        specific grid points (5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1
+    """
+    N = green.shape[0]
+    grid_spacing = grid_size / (N - 1)
+    grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
 
-    def solve_with_charge(self, boundary_func=None, f=None, tol=1e-5, max_iter=2000):
-        self.laplace()
-        N = self.N
-        for i in range(N):
-            self.phi[0, i] = boundary_func(0, i)
-            self.phi[N - 1, i] = boundary_func(N - 1, i)
-            self.phi[i, 0] = boundary_func(i, 0)
-            self.phi[i, N - 1] = boundary_func(i, N - 1)
-    
-        print("Initial φ with boundary conditions:")
-        print(self.phi)
-    
-        for iteration in range(1, max_iter + 1):
-            old_phi = self.phi.copy()
-            for i in range(1, N - 1):
-                for j in range(1, N - 1):
-                    self.phi[i, j] = 1/4 * (
-                        self.phi[i+1, j] + self.phi[i-1, j] +
-                        self.phi[i, j+1] + self.phi[i, j-1] +
-                        (self.h ** 2) * f(i, j)
-                    )
-            max_delta = np.max(np.abs(self.phi - old_phi))
-            if max_delta < tol:
-                print(f"Converged after {iteration} iterations (Δφ = {max_delta:.2e}).")
-                break
-    
-        print("Final φ after relaxation:")
-        print(self.phi)
-        return self.phi
+    plt.figure(figsize=(8, 6))
+    plt.imshow(green, origin='lower', cmap='viridis', extent=[0, N-1, 0, N-1])
+    plt.colorbar(label="Green's function")
+    plt.title("Green's Function at Grid Points")
 
+    for x_pos, y_pos in grid_points:
+        j_index = int(round(x_pos / grid_spacing))
+        i_index = int(round(y_pos / grid_spacing))
+
+        plt.plot(j_index, i_index, 'ro')
+
+        label = f"({x_pos:.1f},{y_pos:.1f}) cm"
+        plt.text(j_index + 0.3, i_index + 0.3, label, color='white', fontsize=8)
+
+    plt.xlabel("x (grid index)")
+    plt.ylabel("y (grid index)")
+    plt.grid(False)
+    plt.tight_layout()
+    plt.savefig("plotgreenatpoints.png")
+    plt.show()
 
 if __name__ == "__main__":
-    solver = randwalker()
-    green, green_solve = solver.random_walk_solver()
-    rank = MPI.COMM_WORLD.Get_rank()
+    N = 5
+    L = 10.0
+    walkers = 100000
+    max_steps = 100000
+    h = L / (N - 1)
+    sample_points = [(5.0, 5.0), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
+    def coord_to_index(xy):
+        x, y = xy
+        return int(round(y / h)), int(round(x / h))
 
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
     if rank == 0:
-        print("Charge Relaxation-Green's Simulation\n")
-        sim = Charges_Boundary_Grids(N=4, L=10)
-        all_fields = sim.points_in_charge_dist()
-        for label, phi in all_fields.items():
-            print(f"\nEvaluating potential field: {label}")
-            sim.evaluate_points(phi)
+        solver = RandomWalkGreenSolver(N, L, walkers, max_steps)
+        greens_matrix = np.zeros((N, N, N, N))
+        for i in range(1, N-1):
+            for j in range(1, N-1):
+                greens_output, _ = solver.greens_walker((i, j))
+                greens_matrix[:, :, i, j] = greens_output
+        np.save("greens.npy", greens_matrix)
+    comm.Barrier()
+    if rank == 0:
+        greens_matrix = np.load("greens.npy")
+        sim = Charges_Boundary_Grids(N=N, L=L)
+        green_potentials = sim.potential_from_green(greens_matrix, sample_points)
 
-    MPI.Finalize()
+        print("\n=== PDE Potentials via Green’s function ===")
+        for case_label, pot_dict in green_potentials.items():
+            print(f"\nCase: {case_label}")
+            for pt, phi_val in pot_dict.items():
+                print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}) → {phi_val:.4f} V")
+
+    comm.Barrier()
+    if rank == 0:
+        print("\n=== Monte Carlo G Estimates w/ Error ===")
+        for pt in sample_points:
+            idx = coord_to_index(pt)
+            greens_output, greens_error = solver.greens_walker(idx)
+            print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}) → G = {greens_output:.4f} ± {greens_error:.4f}")
