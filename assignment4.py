@@ -216,7 +216,7 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
         visits = np.zeros(initial_walkers, int)
         i0, j0 = start
     
-        for w in range(initial_walkers):
+        for walker_index in range(initial_walkers):
             i, j = i0, j0
             count = 0
             steps = 0
@@ -230,7 +230,7 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
                     count += 1
                 if i in (0, self.N - 1) or j in (0, self.N - 1):
                     break
-            visits[w] = count
+            visits[walker_index] = count
         allv = None
         if self.rank == 0:
             allv = np.empty(self.params['num_samples'], int)
@@ -396,20 +396,12 @@ if __name__ == "__main__":
             for j in range(1, N-1):
                 greens_output, _ = solver.greens_walker((i, j))
                 greens_matrix[:, :, i, j] = greens_output
-        np.save("greens.npy", greens_matrix)
-    comm.Barrier()
-    if rank == 0:
-        greens_matrix = np.load("greens.npy")
-        sim = Charges_Boundary_Grids(N=N, L=L)
-        green_potentials = sim.potential_from_green(greens_matrix, sample_points)
 
         print("\n=== PDE Potentials via Green’s function ===")
         for case_label, pot_dict in green_potentials.items():
             print(f"\nCase: {case_label}")
             for pt, phi_val in pot_dict.items():
                 print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}) → {phi_val:.4f} V")
-
-    comm.Barrier()
     if rank == 0:
         print("\n=== Monte Carlo G Estimates w/ Error ===")
         for pt in sample_points:
