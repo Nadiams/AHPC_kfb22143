@@ -233,7 +233,7 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
         initial_walkers = self.params['num_samples'] // self.mpi_info['size']
         visits = np.zeros(initial_walkers, int)
         i0, j0 = start
-    
+
         for walker_index in range(initial_walkers):
             i, j = i0, j0
             count = 0
@@ -253,7 +253,7 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
         if self.rank == 0:
             allv = np.empty(self.params['num_samples'], int)
         self.comm.Gather(visits, allv, root=0)
-    
+
         if self.rank == 0:
             mean_vis = allv.mean()
             var_vis  = allv.var(ddof=1)
@@ -396,10 +396,14 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
                     boundary_phi = 0
                     for j in range(N):
                         boundary_phi += greens_matrix[i0, j0, 0, j] * phi_boundary_grid[0, j]
-                        boundary_phi += greens_matrix[i0, j0, N - 1, j] * phi_boundary_grid[N - 1, j]
+                        boundary_phi += (
+                            greens_matrix[i0, j0, N - 1, j] * phi_boundary_grid[N - 1, j]
+                            )
                     for i in range(1, N - 1):
                         boundary_phi += greens_matrix[i0, j0, i, 0] * phi_boundary_grid[i, 0]
-                        boundary_phi += greens_matrix[i0, j0, i, N - 1] * phi_boundary_grid[i, N - 1]
+                        boundary_phi += (
+                            greens_matrix[i0, j0, i, N - 1] * phi_boundary_grid[i, N - 1]
+                            )
                     potentials[(x, y)] = phi_from_charges + boundary_phi
                 results[key] = potentials
         return results
