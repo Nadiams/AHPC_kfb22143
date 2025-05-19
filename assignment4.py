@@ -21,9 +21,9 @@ class Error:
     """
     def __init__(self, n_samples, mean, var):
         """
-        Initialises objects into Error class.
-        Args:
-            num_samples, mean, and variance.
+            Initialises objects into Error class.
+            Args:
+                num_samples, mean, and variance.
         """
         self.n_samples= n_samples
         self.mean = mean
@@ -31,9 +31,9 @@ class Error:
 
     def __add__(self, other):
         """
-        Adds two objects together.
-        Returns:
-            temporary
+            Adds two objects together.
+            Returns:
+                temporary
         """
         temporary = copy.deepcopy(self)
         temporary.n_samples+= other.n_samples
@@ -47,11 +47,11 @@ class Error:
 
     def parallel_variance(self, samples_a, samples_b):
         """
-        Computes the combined variance for two groups of samples.
-        Args:
-            the mean, variance and sample size.
-        Returns:
-            variance
+            Computes the combined variance for two groups of samples.
+            Args:
+                the mean, variance and sample size.
+            Returns:
+                variance
         """
         n_a, mean_a, var_a = samples_a
         n_b, mean_b, var_b = samples_b
@@ -74,17 +74,17 @@ class Error:
 
 class MonteCarloIntegrator(Error):
     """
-	Monte Carlo class which uses the multi-dimensional Monte Carlo quadrature 
-    formula to compute other integrals quickly. Inherits from the Error class.
+    	Monte Carlo class which uses the multi-dimensional Monte Carlo quadrature 
+        formula to compute other integrals quickly. Inherits from the Error class.
 	"""
     def __init__(self, function, lower_bounds, upper_bounds, num_samples=1000000):
         """
-		Initialises parameters.
-		Args:
-			function: The function to integrate over.
-			lower_bounds,
-			upper_bounds,
-            num_samples.
+    		Initialises parameters.
+                Args:
+                    function: The function to integrate over.
+                    lower_bounds,
+                    upper_bounds,
+                    num_samples.
 		"""
         lower_bounds = np.array(lower_bounds, dtype=float)
         upper_bounds = np.array(upper_bounds, dtype=float)
@@ -153,7 +153,7 @@ class MonteCarloIntegrator(Error):
             print(f"Estimated Variance: {combined_variance:.6f}")
             print(f"Standard Error: {standard_error:.6f}")
             if combined_integral == 0:
-                print("Error: Integral computed as 0!")
+                print("Monte Carlo Integral = 0")
             print("========================================================\n")
 
             return combined_integral, combined_variance, standard_error
@@ -193,13 +193,13 @@ class MonteCarloIntegrator(Error):
 class RandomWalkGreenSolver(MonteCarloIntegrator):
     """
         Class to create walkers who follow a random path with specific
-	start points, boundaries and charges acting on them.
+        start points, boundaries and charges acting on them.
     """
     def __init__(self, N, L, walkers, max_steps, seed=12345):
-	"""
-            Initialised variables to inherit them from the
-	    Monte Carlo (Error) Class.
-	"""
+        """
+        Initialised variables to inherit them from the
+        Monte Carlo (Error) Class.
+        """
         lower_bounds = [0, 0]
         upper_bounds = [L, L]
         super().__init__(
@@ -220,9 +220,9 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
         self.rng = default_rng(SeedSequence(seed + self.rank))
 
     def greens_walker(self, start):
-	"""
+        """
             Function of the walker in Green's function to use random
-	    sampling to follow a path starting from a specific point.
+            sampling to follow a path starting from a specific point.
             Args:
 	        self,
 	        start
@@ -263,15 +263,15 @@ class RandomWalkGreenSolver(MonteCarloIntegrator):
             return greens_mean, self.compute_error()
 
 class Charges_Boundary_Grids(RandomWalkGreenSolver):
-	"""
-            Class to define boundary conditions, charge distributions
+    """
+        Class to define boundary conditions, charge distributions
 	    and start points.
 	"""
     def __init__(self, N=5, L=10):
-"""
+        """
             Initialised variables to inherit them from the
-	    random walker class (Monte Carlo(Error)).
-	"""
+	        random walker class (Monte Carlo(Error)).
+        """
         self.N = N
         self.L = L
         self.h = L / (N - 1)
@@ -281,19 +281,19 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
     def boundary_conditions(self):
         """
             Defined boundary conditions in functions to create a 
-	    loop for each point. A while loop may have been better.
-	"""
+            loop for each point. A while loop may have been better.
+        """
 
         def boundary_a(i, j):
-        """
-            Set the first boundary condition.
-	"""
+            """
+                Set the first boundary condition.
+            """
             return 1
 
         def boundary_b(i, j):
-        """
-            Set the second boundary condition.
-	"""
+            """
+                Set the second boundary condition.
+            """
             if i == 0 or i == self.N - 1:
                 return 1
             elif j == 0 or j == self.N - 1:
@@ -301,9 +301,9 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
             return 0
 
         def boundary_c(i, j):
-        """
-            Set the last boundary condition.
-	"""
+            """
+                Set the last boundary condition.
+            """
             if i == 0:
                 return 2
             elif i == self.N - 1:
@@ -323,7 +323,7 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
     def charge_distribution(self):
         """
             Set the three different charge distributions.
-	"""
+        """
         N = self.N
         L = self.L
         uniform_charge = np.zeros((N, N))
@@ -358,50 +358,52 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
     def coords_to_index(self, x):
         """
             To obtain better results, increased the grid size.
-	    Had to convert the coordinates of the specific points
+            Had to convert the coordinates of the specific points
             into indexes of the grid/matrix.
-	"""
+        """
         return int(round(x / self.h))
 
     def potential_from_green(self, greens_matrix, points):
         """
             Function to find the Green's function potential output.
-	    Args:
+            Args:
                  self,
-		 greens_matrix,
+                 greens_matrix,
                  points.
-	    Returns:
+                 Returns:
                  results of green's function.
-	"""
+        """
         N, h = self.N, self.h
         results = {}
         for boundaryconditions_label, boundaryconditions_func in self.boundaries.items():
-            phi_b = np.zeros((N, N))
+            phi_boundary_grid = np.zeros((N, N))
             for i in range(N):
                 for j in range(N):
-                    phi_b[i, j] = boundaryconditions_func(i, j)
-            for charge_label, charge_array in self.charges.items():
+                    phi_boundary_grid[i, j] = boundaryconditions_func(i, j)
+            for charge_label, charge_density in self.charges.items():
                 key = f"{charge_label} + {boundaryconditions_label}"
                 potentials = {}
                 for x, y in points:
                     i0 = self.coords_to_index(y)
                     j0 = self.coords_to_index(x)
-                    Q_sum = 0.0
+                    phi_from_charges = 0.0
                     for i in range(1, N - 1):
                         for j in range(1, N - 1):
-                            Q_sum += greens_matrix[i0, j0, i, j] * charge_array[i, j] * h * h
-                    B_sum = 0.0
+                            phi_from_charges += (
+                                greens_matrix[i0, j0, i, j] * charge_density[i, j] * h**2
+                                )
+                    boundary_phi = 0
                     for j in range(N):
-                        B_sum += greens_matrix[i0, j0, 0, j] * phi_b[0, j]
-                        B_sum += greens_matrix[i0, j0, N - 1, j] * phi_b[N - 1, j]
+                        boundary_phi += greens_matrix[i0, j0, 0, j] * phi_boundary_grid[0, j]
+                        boundary_phi += greens_matrix[i0, j0, N - 1, j] * phi_boundary_grid[N - 1, j]
                     for i in range(1, N - 1):
-                        B_sum += greens_matrix[i0, j0, i, 0] * phi_b[i, 0]
-                        B_sum += greens_matrix[i0, j0, i, N - 1] * phi_b[i, N - 1]
-                    potentials[(x, y)] = Q_sum + B_sum
+                        boundary_phi += greens_matrix[i0, j0, i, 0] * phi_boundary_grid[i, 0]
+                        boundary_phi += greens_matrix[i0, j0, i, N - 1] * phi_boundary_grid[i, N - 1]
+                    potentials[(x, y)] = phi_from_charges + boundary_phi
                 results[key] = potentials
         return results
 
-def plot_green_at_points(green, grid_size=10):
+def plot_green_at_points(green, L=10):
     """
         Plot of green's function with specific points.
     
@@ -410,22 +412,22 @@ def plot_green_at_points(green, grid_size=10):
         specific grid points (5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1
     """
     N = green.shape[0]
-    grid_spacing = grid_size / (N - 1)
+    h = L / (N - 1)
     grid_points = [(5, 5), (2.5, 2.5), (0.1, 2.5), (0.1, 0.1)]
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(10, 8))
     plt.imshow(green, origin='lower', cmap='viridis', extent=[0, N-1, 0, N-1])
     plt.colorbar(label="Green's function")
     plt.title("Green's Function at Grid Points")
     plt.savefig("Greens_colourmap")
 
     for x_position, y_position in grid_points:
-        j_index = int(round(x_position / grid_spacing))
-        i_index = int(round(y_position / grid_spacing))
+        j_index = int(round(x_position / h))
+        i_index = int(round(y_position / h))
 
         plt.plot(j_index, i_index, 'ro')
         label = f"({x_position:.1f},{y_position:.1f}) cm"
-        plt.text(j_index + 0.3, i_index + 0.3, label, color='white', fontsize=8)
+        plt.text(j_index, i_index, label, color='white')
     plt.xlabel("x (grid index)")
     plt.ylabel("y (grid index)")
     plt.grid()
@@ -453,15 +455,17 @@ if __name__ == "__main__":
             for j in range(1, N-1):
                 greens_output, _ = solver.greens_walker((i, j))
                 greens_matrix[:, :, i, j] = greens_output
-
+        sim = Charges_Boundary_Grids(N=N, L=L)
+        green_potentials = sim.potential_from_green(greens_matrix, sample_points)
         print("\n=== PDE Potentials via Green’s function ===")
         for case_label, pot_dict in green_potentials.items():
             print(f"\nCase: {case_label}")
             for pt, phi_val in pot_dict.items():
-                print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}) → {phi_val:.4f} V")
+                print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}),  {phi_val:.4f} V")
     if rank == 0:
         print("\n=== Monte Carlo G Estimates w/ Error ===")
         for pt in sample_points:
             idx = coord_to_index(pt)
             greens_output, greens_error = solver.greens_walker(idx)
-            print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}) → G = {greens_output:.4f} ± {greens_error:.4f}")
+            print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}), "
+                  f"G = {greens_output:.4f} ± {greens_error:.4f}")
