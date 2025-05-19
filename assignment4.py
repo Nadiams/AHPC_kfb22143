@@ -286,13 +286,13 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
 
         def boundary_a(i, j):
             """
-                Set the first boundary condition.
+                All edges uniformly at +1 V.
             """
             return 1
 
         def boundary_b(i, j):
             """
-                Set the second boundary condition.
+                Top and bottom edges at +1 V, left and right at -1 V
             """
             if i == 0 or i == self.N - 1:
                 return 1
@@ -302,7 +302,8 @@ class Charges_Boundary_Grids(RandomWalkGreenSolver):
 
         def boundary_c(i, j):
             """
-                Set the last boundary condition.
+                Top and left edges at +2 V, bottom edge at 0 V and
+                right side edge at -4 V.
             """
             if i == 0:
                 return 2
@@ -457,15 +458,15 @@ if __name__ == "__main__":
                 greens_matrix[:, :, i, j] = greens_output
         sim = Charges_Boundary_Grids(N=N, L=L)
         green_potentials = sim.potential_from_green(greens_matrix, sample_points)
-        print("\n=== PDE Potentials via Green’s function ===")
-        for case_label, pot_dict in green_potentials.items():
+        print("\n=== Potential (V) using Green’s function ===")
+        for case_label, potentials_at_points in green_potentials.items():
             print(f"\nCase: {case_label}")
-            for pt, phi_val in pot_dict.items():
-                print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}),  {phi_val:.4f} V")
+            for point, potential_value in potentials_at_points.items():
+                print(f"  Point ({point[0]:.2f}, {point[1]:.2f}),  {potential_value:.4f} V")
     if rank == 0:
-        print("\n=== Monte Carlo G Estimates w/ Error ===")
-        for pt in sample_points:
-            idx = coord_to_index(pt)
-            greens_output, greens_error = solver.greens_walker(idx)
-            print(f"  Point ({pt[0]:.2f}, {pt[1]:.2f}), "
+        print("\n=== Monte Carlo mean of Green's Function w/ Error ===")
+        for point in sample_points:
+            grid_index = coord_to_index(point)
+            greens_output, greens_error = solver.greens_walker(grid_index)
+            print(f"  Point ({point[0]:.2f}, {point[1]:.2f}), "
                   f"G = {greens_output:.4f} ± {greens_error:.4f}")
